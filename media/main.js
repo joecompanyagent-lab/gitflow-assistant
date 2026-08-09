@@ -160,6 +160,55 @@
             case 'hideTyping':
                 hideTyping();
                 break;
+
+            case 'streamUpdate':
+                hideTyping();
+                hideWelcome();
+                handleStreamUpdate(data.content, data.isComplete);
+                break;
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // STREAMING — Menampilkan Jawaban AI Secara Bertahap
+    // ══════════════════════════════════════════════════════════
+
+    var _streamingBubbleId = null;
+
+    function handleStreamUpdate(content, isComplete) {
+        var existingEl = _streamingBubbleId
+            ? document.querySelector('[data-id="' + _streamingBubbleId + '"]')
+            : null;
+
+        if (!existingEl) {
+            // Buat bubble baru untuk streaming
+            _streamingBubbleId = generateId();
+            var msg = {
+                id: _streamingBubbleId,
+                role: 'assistant',
+                content: content,
+                timestamp: new Date().toISOString()
+            };
+            renderMessage(msg, true);
+        } else {
+            // Update konten bubble yang sudah ada
+            var bubbleEl = existingEl.querySelector('.bubble');
+            if (bubbleEl) {
+                bubbleEl.innerHTML = formatContent(content);
+            }
+            scrollToBottom();
+        }
+
+        if (isComplete) {
+            // Streaming selesai — simpan pesan final
+            var finalMsg = {
+                id: _streamingBubbleId,
+                role: 'assistant',
+                content: content,
+                timestamp: new Date().toISOString()
+            };
+            saveMessage(finalMsg);
+            _streamingBubbleId = null;
         }
     }
 

@@ -45,6 +45,20 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     }
 
     /**
+     * Mengirim update streaming ke webview (memperbarui bubble terakhir).
+     * (Menampilkan jawaban AI secara bertahap — kata per kata)
+     */
+    public streamAssistantMessage(content: string, isComplete: boolean): void {
+        if (this._view) {
+            this._view.webview.postMessage({
+                type: 'streamUpdate',
+                content: content,
+                isComplete: isComplete,
+            });
+        }
+    }
+
+    /**
      * Memperbarui badge branch di header chat.
      * (Mengganti label ruangan aktif yang tertera di bagian atas chat)
      */
