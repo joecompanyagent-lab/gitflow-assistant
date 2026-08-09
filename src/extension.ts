@@ -93,12 +93,14 @@ export function activate(context: vscode.ExtensionContext): void {
     // ── Monitor perubahan konfigurasi ──
     const configWatcher = vscode.workspace.onDidChangeConfiguration((e) => {
         if (e.affectsConfiguration('gitflowAssistant.groqApiKey') ||
+            e.affectsConfiguration('gitflowAssistant.groqApiKeys') ||
             e.affectsConfiguration('gitflowAssistant.groqModel')) {
             groqService.reload();
 
             if (groqService.isConfigured()) {
+                const count = groqService.getAllApiKeys().length;
                 chatProvider.sendAssistantMessage(
-                    '✅ **API Key berhasil diperbarui!** *(kunci akses ke otak AI sudah dipasang)*\n\n' +
+                    `✅ **Pengaturan API Key diperbarui!** *(${count} API Key terdaftar untuk rotasi & auto-fallback)*\n\n` +
                     'Otak AI sekarang terhubung. Silakan tanya apa saja! 🤖',
                     'OUTBOUND'
                 );
