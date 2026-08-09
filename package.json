@@ -20,7 +20,10 @@
     "assistant"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onView:gitflowAssistant.chatView",
+    "onCommand:gitflowAssistant.openChat",
+    "onStartupFinished",
+    "*"
   ],
   "repository": {
     "type": "git",

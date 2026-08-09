@@ -61,18 +61,24 @@ export function activate(context: vscode.ExtensionContext): void {
         },
     });
 
-    // Inisialisasi GitService
+    // Inisialisasi GitService (async & safe)
     gitService.initialize().then((success) => {
         if (success) {
             const currentBranch = gitService.getCurrentBranch();
             chatProvider.updateBranchBadge(currentBranch);
             console.log(`[GitFlow] Git detector aktif. Branch: ${currentBranch}`);
-
-            // Trigger Skenario 1: Initial Greeting setelah Git service siap
-            setTimeout(() => {
-                notificationService.sendInitialGreeting();
-            }, 1000);
+        } else {
+            console.warn('[GitFlow] Git detector berjalan terbatas (bukan folder Git).');
         }
+        // Selalu tampilkan sapaan awal & UI chat
+        setTimeout(() => {
+            notificationService.sendInitialGreeting();
+        }, 300);
+    }).catch((err) => {
+        console.warn('[GitFlow] Error GitService:', err);
+        setTimeout(() => {
+            notificationService.sendInitialGreeting();
+        }, 300);
     });
 
     // ── Skenario 5: File & Structure Guard Watcher ──
