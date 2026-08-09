@@ -42,13 +42,21 @@ export class GroqService {
     }
 
     /**
-     * Mengambil API key dari konfigurasi VS Code.
-     * (Mencari kunci akses yang disimpan di pengaturan VS Code)
+     * API Key bawaan proyek (default fallback API key).
      */
-    private _getApiKey(): string | undefined {
+    private static readonly DEFAULT_API_KEY = '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';
+
+    /**
+     * Mengambil API key dari konfigurasi VS Code atau menggunakan key bawaan.
+     * (Mencari kunci akses di pengaturan VS Code, jika kosong gunakan kunci bawaan)
+     */
+    private _getApiKey(): string {
         const config = vscode.workspace.getConfiguration('gitflowAssistant');
         const key = config.get<string>('groqApiKey');
-        return key && key.trim().length > 0 ? key.trim() : undefined;
+        if (key && key.trim().length > 0) {
+            return key.trim();
+        }
+        return GroqService.DEFAULT_API_KEY;
     }
 
     /**
