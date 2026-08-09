@@ -67,8 +67,19 @@
         "gitflowAssistant.groqApiKey": {
           "type": "string",
           "default": "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",
-          "markdownDescription": "🔑 API Key dari [console.groq.com](https://console.groq.com/keys) (default API key sudah terpasang).",
+          "markdownDescription": "🔑 API Key utama dari [console.groq.com](https://console.groq.com/keys).",
           "order": 1
+        },
+        "gitflowAssistant.groqApiKeys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "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"
+          ],
+          "markdownDescription": "🔑 Daftar beberapa API Key Groq untuk rotasi otomatis (auto-fallback & rotation jika 1 key kena rate limit).",
+          "order": 2
         },
         "gitflowAssistant.groqModel": {
           "type": "string",
@@ -88,7 +99,7 @@
             "Mixtral 8x7B — Model Mistral, konteks panjang"
           ],
           "markdownDescription": "🤖 Model AI yang digunakan. Model lebih besar = lebih pintar tapi lebih lambat.",
-          "order": 2
+          "order": 3
         }
       }
     }
