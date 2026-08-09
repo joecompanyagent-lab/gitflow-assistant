@@ -5,21 +5,26 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.0.0/),
 dan proyek ini menggunakan [Semantic Versioning](https://semver.org/lang/id/).
 
+## [1.3.0] - 2026-08-09
+
+### ✨ Added (Fitur Baru: Smart Fallback, Offline Mode & CI/CD Pipeline)
+- 🤖 **Smart Model Fallback**: Jika model utama yang dipilih (misal `llama-3.3-70b-versatile`) sibuk atau bermasalah, sistem secara otomatis beralih sementara ke model ultra-cepat `llama-3.1-8b-instant`.
+- 🌐 **Offline Knowledge Base**: `OfflineKnowledgeService` menyajikan pustaka pengetahuan lokal interaktif tentang alur GitFlow, Conventional Commits, dan prosedur darurat Hotfix saat koneksi internet terputus.
+- ⚙️ **CI/CD GitHub Actions Pipeline**: Workflow `.github/workflows/build-and-test.yml` otomatis menguji kompilasi TypeScript, menjalankan test suite pada Node 18 & 20, serta mengemas berkas `.vsix` installer secara otomatis saat ada push/PR/Tag.
+
+---
+
 ## [1.2.0] - 2026-08-09
 
 ### 🔘 Added (Fitur Baru: One-Click Git Buttons)
-- **Tombol Aksi Cepat Interaktif di Chat UI**: Menambahkan tombol aksi interaktif di dalam gelembung chat AI:
-  - 🌿 **Buat Feature Branch**: Membuat branch `feat/nama-fitur` dari `dev` secara otomatis dengan masukan nama fitur.
-  - 🔀 **Pindah Branch**: Memilih dan berpindah ruangan kerja (`git checkout`) via QuickPick VS Code.
-  - 🧹 **Bersihkan Branch Mangkrak**: Menghapus branch yang sudah tidak terpakai (`git branch -d`).
-  - 💡 **Buat Commit Rapi**: Membimbing penulisan commit message berstandar Conventional Commits (`feat:`, `fix:`, `docs:`, dll) dan otomatis mengeksekusinya di terminal.
+- **Tombol Aksi Cepat Interaktif di Chat UI**: Menambahkan tombol aksi interaktif di dalam gelembung chat AI (`feat/*` creation, branch switch, branch delete, conventional commit guide).
 
 ---
 
 ## [1.1.0] - 2026-08-09
 
 ### ✨ Added (Fitur Baru)
-- 🔑 **Multi-API Key Settings & Auto-Fallback**: Menambahkan pengaturan array `gitflowAssistant.groqApiKeys` di VS Code Settings. Pengguna dapat mendaftarkan beberapa Groq API key sekaligus untuk rotasi otomatis (*round-robin*) dan alih kelola otomatis (*auto-fallback*) jika salah satu API key mencapai batas kuota atau rate limit (429).
+- 🔑 **Multi-API Key Settings & Auto-Fallback**: Menambahkan pengaturan array `gitflowAssistant.groqApiKeys` di VS Code Settings untuk rotasi dan fallback otomatis.
 
 ---
 
@@ -27,14 +32,13 @@ dan proyek ini menggunakan [Semantic Versioning](https://semver.org/lang/id/).
 
 ### 📦 Added & Fixed (Pengemasan Paket VSIX)
 - **VSIX Packaging Support**: Menambahkan file `LICENSE` (MIT) dan field `repository` pada manifes `package.json`.
-- **File Installer VSIX**: Berhasil mengemas berkas installer siap instal `gitflow-assistant-1.0.2.vsix` (38.8 KB).
 
 ---
 
 ## [1.0.1] - 2026-08-09
 
 ### 🔑 Added (Ditambahkan)
-- **Default Groq API Key**: Memasang API key bawaan (`gsk_aog...`) sebagai default fallback sehingga ekstensi langsung aktif dan bisa digunakan out-of-the-box tanpa perlu konfigurasi manual dari user.
+- **Default Groq API Key**: Memasang API key bawaan (`gsk_aog...`) sebagai default fallback.
 
 ---
 
@@ -43,12 +47,3 @@ dan proyek ini menggunakan [Semantic Versioning](https://semver.org/lang/id/).
 ### 🚀 Release Perdana (Initial Release)
 
 Ekstensi VS Code **GitFlow Assistant** rilis versi 1.0.0!
-
-#### ✨ Fitur yang Ditambahkan (Added)
-- 🌿 **5 Core Branches Protocol**: Pengelolaan alur branch standard (`feat/*` → `dev` → `staging` → `main` + `hotfix/*`).
-- 🗣️ **Universal Git-to-Layman Paraphrase Engine**: Kamus 30+ istilah Git beserta parafrase bahasa awam dan analogi sehari-hari.
-- 💬 **Webview Chat UI**: Panel chat di sidebar VS Code dengan bubble kiri (AI) dan kanan (User), tema dark mode otomatis, typing indicator, dan 6 varian tag badge outbound.
-- 🤖 **Groq API Integration**: Otak AI terhubung dengan Groq API (Llama 3.1 8B, Llama 3.3 70B, Gemma 2 9B, Mixtral) lengkap dengan streaming response bertahap dan 11 Pilar System Prompt.
-- 🔍 **Real-Time Git Detector**: Deteksi otomatis branch aktif, pengawas pergerakan branch, validator commit message conventional, validator nama branch, dan stale branch detector (>7 hari).
-- 🔔 **Outbound & Proactive Chat Engine**: 5 skenario notifikasi proaktif otomatis (Initial Greeting, Branch Movement, Proactive Violation Warning, Stale Branch Alert, File Structure Guard).
-- ⚙️ **VS Code Settings UI**: Pengaturan API key dan pemilihan model AI langsung dari VS Code Settings.
