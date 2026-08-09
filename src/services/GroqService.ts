@@ -27,7 +27,7 @@ export class GroqService {
     private _activeKeyIndex = 0;
 
     /** API Key bawaan proyek (default fallback API key) */
-    private static readonly DEFAULT_API_KEY = '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';
+    private static readonly DEFAULT_API_KEY = '';
 
     constructor() {
         // Inisialisasi awal
