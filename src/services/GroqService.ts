@@ -13,6 +13,7 @@
 import * as vscode from 'vscode';
 import Groq from 'groq-sdk';
 import { getSystemPromptWithContext } from './systemPrompt';
+import { OfflineKnowledgeService } from './OfflineKnowledgeService';
 
 /** Struktur satu pesan dalam riwayat percakapan */
 interface ConversationMessage {
@@ -232,14 +233,37 @@ export class GroqService {
                     ...this._conversationHistory,
                 ];
 
-                const stream = await client.chat.completions.create({
-                    model: this._getModel(),
-                    messages: messages,
-                    temperature: 0.7,
-                    max_tokens: 2048,
-                    top_p: 0.9,
-                    stream: true,
-                });
+                let modelToUse = this._getModel();
+
+                // Coba panggil streaming
+                let stream;
+                try {
+                    stream = await client.chat.completions.create({
+                        model: modelToUse,
+                        messages: messages,
+                        temperature: 0.7,
+                        max_tokens: 2048,
+                        top_p: 0.9,
+                        stream: true,
+                    });
+                } catch (modelErr: any) {
+                    // Smart Model Fallback: Jika model utama error/busy, fallback ke llama-3.1-8b-instant
+                    const fallbackModel = 'llama-3.1-8b-instant';
+                    if (modelToUse !== fallbackModel) {
+                        console.warn(`[GitFlow] Smart Model Fallback: Model ${modelToUse} bermasalah, beralih ke ${fallbackModel}`);
+                        modelToUse = fallbackModel;
+                        stream = await client.chat.completions.create({
+                            model: modelToUse,
+                            messages: messages,
+                            temperature: 0.7,
+                            max_tokens: 2048,
+                            top_p: 0.9,
+                            stream: true,
+                        });
+                    } else {
+                        throw modelErr;
+                    }
+                }
 
                 let fullReply = '';
 
@@ -265,9 +289,11 @@ export class GroqService {
             }
         }
 
-        const errMsg = this._handleError(lastError);
-        onChunk(errMsg);
-        return errMsg;
+        // Jika semua network / API key gagal, gunakan Offline Knowledge Base
+        const offlineService = new OfflineKnowledgeService();
+        const offlineAns = offlineService.getAnswer(userMessage, currentBranch);
+        onChunk(offlineAns.content);
+        return offlineAns.content;
     }
 
     /**
