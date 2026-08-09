@@ -595,3 +595,44 @@ body {
     height: 1px;
     background: var(--gfa-border);
 }
+
+/* ══════════════════════════════════════════════════════════
+ * INTERACTIVE ACTION BUTTONS — Tombol Aksi Cepat
+ * ══════════════════════════════════════════════════════════ */
+
+.message-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gfa-spacing-xs);
+    margin-top: var(--gfa-spacing-sm);
+    padding-top: var(--gfa-spacing-xs);
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    background: rgba(137, 180, 250, 0.1);
+    color: var(--gfa-tag-outbound);
+    border: 1px solid rgba(137, 180, 250, 0.25);
+    border-radius: var(--gfa-radius-sm);
+    font-size: var(--gfa-font-size-xs);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--gfa-transition-fast);
+}
+
+.action-btn:hover {
+    background: var(--gfa-accent);
+    color: var(--gfa-accent-fg);
+    border-color: var(--gfa-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn:active {
+    transform: translateY(0);
+}
+

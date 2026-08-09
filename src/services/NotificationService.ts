@@ -48,7 +48,13 @@ export class NotificationService {
             `💡 **Apa yang ingin Anda lakukan selanjutnya?**`,
         ];
 
-        this._chatProvider.sendAssistantMessage(greetingLines.join('\n'), 'OUTBOUND');
+        const buttons = [
+            { id: 'btn_create_feat', label: '🌿 Buat Feature Branch', action: 'createFeatureBranch', icon: '✨' },
+            { id: 'btn_switch', label: '🔀 Pindah Branch', action: 'switchBranch', icon: '📍' },
+            { id: 'btn_commit', label: '💡 Buat Commit Rapi', action: 'suggestCommit', icon: '📝' },
+        ];
+
+        this._chatProvider.sendAssistantMessage(greetingLines.join('\n'), 'OUTBOUND', buttons);
     }
 
     /**
@@ -97,7 +103,12 @@ export class NotificationService {
             `💡 **Solusi & Langkah Benar**: ${violation.suggestion}`,
         ];
 
-        this._chatProvider.sendAssistantMessage(lines.join('\n'), 'WARNING');
+        const warningButtons = [
+            { id: 'btn_switch_dev', label: '🔀 Pindah ke dev', action: 'switchBranch', icon: '🔵' },
+            { id: 'btn_create_feat_warn', label: '🌿 Buat Feature Branch', action: 'createFeatureBranch', icon: '✨' },
+        ];
+
+        this._chatProvider.sendAssistantMessage(lines.join('\n'), 'WARNING', warningButtons);
     }
 
     /**
@@ -118,7 +129,11 @@ export class NotificationService {
             `- Jika fitur sudah selesai/batal: bersihkan dengan ${formatTermWithLayman('git branch -d')} *(membereskan meja kerja)*.`,
         ];
 
-        this._chatProvider.sendAssistantMessage(lines.join('\n'), 'WARNING');
+        const staleButtons = [
+            { id: 'btn_clean_stale', label: '🧹 Bersihkan Branch Mangkrak', action: 'deleteBranch', icon: '🗑️' },
+        ];
+
+        this._chatProvider.sendAssistantMessage(lines.join('\n'), 'WARNING', staleButtons);
     }
 
     /**
