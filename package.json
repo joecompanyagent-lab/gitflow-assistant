@@ -1,0 +1,82 @@
+{
+  "name": "gitflow-assistant",
+  "displayName": "GitFlow Assistant",
+  "description": "Asisten AI interaktif untuk membimbing alur kerja Git (GitFlow) dengan parafrase bahasa awam, notifikasi proaktif, dan panduan pembangunan bertahap.",
+  "version": "0.0.0",
+  "publisher": "fearless-hypatia",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "SCM Providers"
+  ],
+  "keywords": [
+    "git",
+    "gitflow",
+    "branching",
+    "devops",
+    "assistant"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "icon": "media/icons/gitflow-icon.png",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gitflow-assistant-sidebar",
+          "title": "GitFlow Assistant",
+          "icon": "media/icons/gitflow-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "gitflow-assistant-sidebar": [
+        {
+          "type": "webview",
+          "id": "gitflowAssistant.chatView",
+          "name": "Chat"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "gitflowAssistant.openChat",
+        "title": "GitFlow Assistant: Buka Chat",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "gitflowAssistant.showBranchStatus",
+        "title": "GitFlow Assistant: Lihat Status Branch"
+      },
+      {
+        "command": "gitflowAssistant.showProgress",
+        "title": "GitFlow Assistant: Lihat Progress Pembangunan"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "pretest": "npm run compile",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3",
+    "@vscode/test-electron": "^2.3.8"
+  },
+  "dependencies": {
+    "groq-sdk": "^0.8.0"
+  }
+}
