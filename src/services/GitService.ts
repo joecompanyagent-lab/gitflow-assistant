@@ -106,8 +106,9 @@ export class GitService implements vscode.Disposable {
                 return false;
             }
 
-            if (!gitExtension.isActive) {
-                await gitExtension.activate();
+            if (!gitExtension.exports || typeof gitExtension.exports.getAPI !== 'function') {
+                console.warn('[GitFlow] Git extension API tidak tersedia.');
+                return false;
             }
 
             this._gitApi = gitExtension.exports.getAPI(1);
