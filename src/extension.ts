@@ -90,6 +90,80 @@ export function activate(context: vscode.ExtensionContext): void {
         await handleUserMessage(message, chatProvider, groqService, gitService);
     });
 
+    // ── Handle Action Button Clicks (One-Click Git Actions) ──
+    chatProvider.onActionClicked(async (action: string, params?: Record<string, string>) => {
+        switch (action) {
+            case 'createFeatureBranch': {
+                const featureName = await vscode.window.showInputBox({
+                    prompt: 'Masukkan nama fitur baru (misal: login-ui, groq-api)',
+                    placeHolder: 'misal: webview-chat, dark-mode',
+                });
+                if (featureName && featureName.trim().length > 0) {
+                    const cleanName = `feat/${featureName.trim().toLowerCase().replace(/\s+/g, '-')}`;
+                    const terminal = vscode.window.createTerminal('GitFlow');
+                    terminal.show();
+                    terminal.sendText(`git checkout dev && git checkout -b ${cleanName}`);
+                    chatProvider.sendAssistantMessage(
+                        `🌿 **Membuat Branch Fitur Baru!**\n\n` +
+                        `Menjalankan perintah: \`git checkout dev && git checkout -b ${cleanName}\` *(pindah ke dapur utama lalu membuka meja eksperimen baru)*`,
+                        'BRANCH_MOVEMENT'
+                    );
+                }
+                break;
+            }
+
+            case 'switchBranch': {
+                const branches = await gitService.getAllBranches();
+                const branchNames = branches.map(b => b.name);
+                const selected = await vscode.window.showQuickPick(branchNames, {
+                    placeHolder: 'Pilih branch yang ingin dituju (pindah ruangan kerja)',
+                });
+                if (selected) {
+                    const terminal = vscode.window.createTerminal('GitFlow');
+                    terminal.show();
+                    terminal.sendText(`git checkout ${selected}`);
+                }
+                break;
+            }
+
+            case 'deleteBranch': {
+                const branchToDelete = params?.branchName || await vscode.window.showInputBox({
+                    prompt: 'Nama branch yang ingin dihapus (membereskan meja kerja yang tidak terpakai)',
+                });
+                if (branchToDelete) {
+                    const terminal = vscode.window.createTerminal('GitFlow');
+                    terminal.show();
+                    terminal.sendText(`git branch -d ${branchToDelete}`);
+                }
+                break;
+            }
+
+            case 'suggestCommit': {
+                const commitMsg = await vscode.window.showInputBox({
+                    prompt: 'Masukkan pesan commit (gunakan prefix: feat:, fix:, docs:, chore:)',
+                    placeHolder: 'feat: tambah komponen tombol aksi cepat',
+                });
+                if (commitMsg) {
+                    const validation = gitService.checkCommitMessage(commitMsg);
+                    if (!validation.isValid) {
+                        chatProvider.sendAssistantMessage(validation.suggestion || 'Commit message belum rapi', 'WARNING');
+                    } else {
+                        const terminal = vscode.window.createTerminal('GitFlow');
+                        terminal.show();
+                        terminal.sendText(`git add -A && git commit -m "${commitMsg}"`);
+                    }
+                }
+                break;
+            }
+
+            case 'showBranchStatus': {
+                const status = await gitService.getCorebranchStatus();
+                chatProvider.sendAssistantMessage(status, 'OUTBOUND');
+                break;
+            }
+        }
+    });
+
     // ── Monitor perubahan konfigurasi ──
     const configWatcher = vscode.workspace.onDidChangeConfiguration((e) => {
         if (e.affectsConfiguration('gitflowAssistant.groqApiKey') ||

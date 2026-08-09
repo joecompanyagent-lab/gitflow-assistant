@@ -71,6 +71,23 @@
             });
         });
 
+        // Action buttons delegation (Tombol aksi interaktif)
+        chatMessages.addEventListener('click', function (e) {
+            var btn = e.target.closest('.action-btn');
+            if (btn) {
+                var action = btn.getAttribute('data-action');
+                var paramsRaw = btn.getAttribute('data-params');
+                var params = {};
+                try { params = JSON.parse(paramsRaw); } catch (err) {}
+
+                vscode.postMessage({
+                    type: 'actionClicked',
+                    action: action,
+                    params: params
+                });
+            }
+        });
+
         // Terima pesan dari extension backend
         window.addEventListener('message', handleExtensionMessage);
     }
@@ -234,7 +251,21 @@
         }
 
         // Bubble pesan
-        html += '<div class="bubble">' + formatContent(msg.content) + '</div>';
+        html += '<div class="bubble">' + formatContent(msg.content);
+
+        // Action buttons (jika ada)
+        if (msg.buttons && msg.buttons.length > 0) {
+            html += '<div class="message-actions">';
+            msg.buttons.forEach(function (btn) {
+                var icon = btn.icon ? btn.icon + ' ' : '';
+                html += '<button class="action-btn" data-action="' + btn.action + '" data-params="' + escapeHtml(JSON.stringify(btn.params || {})) + '">' +
+                        icon + escapeHtml(btn.label) +
+                        '</button>';
+            });
+            html += '</div>';
+        }
+
+        html += '</div>';
 
         // Timestamp
         html += '<div class="message-meta">';
