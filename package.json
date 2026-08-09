@@ -57,7 +57,38 @@
         "command": "gitflowAssistant.showProgress",
         "title": "GitFlow Assistant: Lihat Progress Pembangunan"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "GitFlow Assistant",
+      "properties": {
+        "gitflowAssistant.groqApiKey": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "🔑 API Key dari [console.groq.com](https://console.groq.com/keys) untuk mengaktifkan otak AI.",
+          "order": 1
+        },
+        "gitflowAssistant.groqModel": {
+          "type": "string",
+          "default": "llama-3.1-8b-instant",
+          "enum": [
+            "llama-3.1-8b-instant",
+            "llama-3.3-70b-versatile",
+            "llama-3.1-70b-versatile",
+            "gemma2-9b-it",
+            "mixtral-8x7b-32768"
+          ],
+          "enumDescriptions": [
+            "Llama 3.1 8B — Cepat & ringan (direkomendasikan)",
+            "Llama 3.3 70B — Lebih pintar, sedikit lebih lambat",
+            "Llama 3.1 70B — Pintar & serbaguna",
+            "Gemma 2 9B — Model Google, cepat",
+            "Mixtral 8x7B — Model Mistral, konteks panjang"
+          ],
+          "markdownDescription": "🤖 Model AI yang digunakan. Model lebih besar = lebih pintar tapi lebih lambat.",
+          "order": 2
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
