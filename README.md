@@ -6,12 +6,12 @@
 
 | Fitur | Deskripsi | Status |
 |---|---|---|
-| 🌿 **5 Core Branches** | Pengelolaan alur `feat → dev → staging → main` + `hotfix` | 🔄 |
-| 🗣️ **Parafrase Awam** | Setiap istilah Git diterjemahkan ke bahasa sehari-hari | 🔄 |
-| 💬 **Chat Interaktif** | Panel chat di sidebar dengan bubble kiri (AI) & kanan (User) | ⬜ |
-| 🤖 **AI (Groq API)** | Jawaban cerdas dengan system prompt GitFlow | ⬜ |
-| 🔔 **Notifikasi Proaktif** | Peringatan otomatis saat ada pelanggaran alur atau branch mangkrak | ⬜ |
-| 📊 **Progress Tracker** | Pelacakan fase pembangunan proyek | ⬜ |
+| 🌿 **5 Core Branches** | Pengelolaan alur `feat → dev → staging → main` + `hotfix` | ✅ |
+| 🗣️ **Parafrase Awam** | Setiap istilah Git diterjemahkan ke bahasa sehari-hari | ✅ |
+| 💬 **Chat Interaktif** | Panel chat di sidebar dengan bubble kiri (AI) & kanan (User) | ✅ |
+| 🤖 **AI (Groq API)** | Jawaban cerdas dengan system prompt GitFlow | ✅ |
+| 🔔 **Notifikasi Proaktif** | Peringatan otomatis saat ada pelanggaran alur atau branch mangkrak | ✅ |
+| 📊 **Progress Tracker** | Pelacakan fase pembangunan proyek | ✅ |
 
 ## 🗺️ Alur Pergerakan Branch
 
@@ -24,13 +24,13 @@ feat/* ──► dev ──► staging ──► main
 ## 🚀 Fase Pembangunan
 
 1. ✅ **Phase 0**: Setup GitFlow Branches
-2. 🔄 **Phase 1**: Scaffold (kerangka proyek)
-3. ⬜ **Phase 2**: Webview Chat UI
-4. ⬜ **Phase 3**: Groq API Integration
-5. ⬜ **Phase 4**: Git Branch Detector
-6. ⬜ **Phase 5**: Outbound Chat & Notifikasi
-7. ⬜ **Phase 6**: Staging Test
-8. ⬜ **Phase 7**: Release v1.0.0
+2. ✅ **Phase 1**: Scaffold (kerangka proyek)
+3. ✅ **Phase 2**: Webview Chat UI
+4. ✅ **Phase 3**: Groq API Integration
+5. ✅ **Phase 4**: Git Branch Detector
+6. ✅ **Phase 5**: Outbound Chat & Notifikasi
+7. ✅ **Phase 6**: Staging Test & CI/CD Pipeline
+8. ✅ **Phase 7**: Release v1.0.0 (Saat ini v1.3.4)
 
 ## 🛠️ Development
 
