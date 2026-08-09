@@ -69,7 +69,7 @@
       "properties": {
         "gitflowAssistant.groqApiKey": {
           "type": "string",
-          "default": "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",
+          "default": "",
           "markdownDescription": "🔑 API Key utama dari [console.groq.com](https://console.groq.com/keys).",
           "order": 1
         },
@@ -78,9 +78,7 @@
           "items": {
             "type": "string"
           },
-          "default": [
-            "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"
-          ],
+          "default": [],
           "markdownDescription": "🔑 Daftar beberapa API Key Groq untuk rotasi otomatis (auto-fallback & rotation jika 1 key kena rate limit).",
           "order": 2
         },
