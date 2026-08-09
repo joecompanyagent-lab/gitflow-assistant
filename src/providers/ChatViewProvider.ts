@@ -274,16 +274,6 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     </div>
 
     <script nonce="${nonce}" src="${jsUri}"></script>
-    <script nonce="${nonce}">
-        // Clear chat handler
-        document.getElementById('btn-clear').addEventListener('click', function() {
-            const vscodeApi = acquireVsCodeApi();
-            vscodeApi.postMessage({ type: 'clearChat' });
-            // Reset local state
-            vscodeApi.setState({ messages: [], isWelcomeVisible: true });
-            location.reload();
-        });
-    </script>
 </body>
 </html>`;
     }
