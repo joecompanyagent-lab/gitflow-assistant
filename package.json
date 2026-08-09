@@ -22,8 +22,11 @@
   "activationEvents": [
     "onStartupFinished"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fearless-hypatia/gitflow-assistant"
+  },
   "main": "./out/extension.js",
-  "icon": "media/icons/gitflow-icon.png",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
