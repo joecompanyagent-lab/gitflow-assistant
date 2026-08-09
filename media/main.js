@@ -71,6 +71,15 @@
             });
         });
 
+        // Clear chat button
+        var btnClear = document.getElementById('btn-clear');
+        if (btnClear) {
+            btnClear.addEventListener('click', function () {
+                vscode.postMessage({ type: 'clearChat' });
+                clearChat();
+            });
+        }
+
         // Action buttons delegation (Tombol aksi interaktif)
         chatMessages.addEventListener('click', function (e) {
             var btn = e.target.closest('.action-btn');
