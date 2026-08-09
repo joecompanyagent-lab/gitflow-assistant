@@ -2,7 +2,7 @@
   "name": "gitflow-assistant",
   "displayName": "GitFlow Assistant",
   "description": "Asisten AI interaktif untuk membimbing alur kerja Git (GitFlow) dengan parafrase bahasa awam, notifikasi proaktif, dan panduan pembangunan bertahap.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "publisher": "fearless-hypatia",
   "license": "MIT",
   "engines": {
