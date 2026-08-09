@@ -5,6 +5,14 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.0.0/),
 dan proyek ini menggunakan [Semantic Versioning](https://semver.org/lang/id/).
 
+## [1.0.2] - 2026-08-09
+
+### 📦 Added & Fixed (Pengemasan Paket VSIX)
+- **VSIX Packaging Support**: Menambahkan file `LICENSE` (MIT) dan field `repository` pada manifes `package.json`.
+- **File Installer VSIX**: Berhasil mengemas berkas installer siap instal `gitflow-assistant-1.0.2.vsix` (38.8 KB).
+
+---
+
 ## [1.0.1] - 2026-08-09
 
 ### 🔑 Added (Ditambahkan)

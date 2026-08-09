@@ -2,7 +2,7 @@
   "name": "gitflow-assistant",
   "displayName": "GitFlow Assistant",
   "description": "Asisten AI interaktif untuk membimbing alur kerja Git (GitFlow) dengan parafrase bahasa awam, notifikasi proaktif, dan panduan pembangunan bertahap.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "publisher": "fearless-hypatia",
   "license": "MIT",
   "engines": {
@@ -22,8 +22,11 @@
   "activationEvents": [
     "onStartupFinished"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fearless-hypatia/gitflow-assistant"
+  },
   "main": "./out/extension.js",
-  "icon": "media/icons/gitflow-icon.png",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
