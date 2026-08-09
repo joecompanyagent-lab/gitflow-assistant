@@ -30,16 +30,27 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         this._onUserMessage = callback;
     }
 
+    // Callback untuk menangani aksi tombol yang diklik
+    private _onActionClicked?: (action: string, params?: Record<string, string>) => void;
+
+    /**
+     * Mendaftarkan callback saat user mengklik tombol aksi interaktif.
+     */
+    public onActionClicked(callback: (action: string, params?: Record<string, string>) => void): void {
+        this._onActionClicked = callback;
+    }
+
     /**
      * Mengirim pesan balasan AI ke webview chat.
-     * (Menampilkan bubble kiri — balasan dari asisten)
+     * (Menampilkan bubble kiri — balasan dari asisten, opsional dengan tombol aksi interaktif)
      */
-    public sendAssistantMessage(content: string, outboundTag?: string): void {
+    public sendAssistantMessage(content: string, outboundTag?: string, buttons?: any[]): void {
         if (this._view) {
             this._view.webview.postMessage({
                 type: outboundTag ? 'outboundNotification' : 'assistantMessage',
                 content: content,
                 tag: outboundTag,
+                buttons: buttons,
             });
         }
     }
@@ -123,6 +134,13 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                         // User mengirim pesan — teruskan ke handler
                         if (this._onUserMessage) {
                             this._onUserMessage(message.content);
+                        }
+                        break;
+
+                    case 'actionClicked':
+                        // User klik tombol aksi interaktif — teruskan ke action handler
+                        if (this._onActionClicked) {
+                            this._onActionClicked(message.action, message.params);
                         }
                         break;
                 }

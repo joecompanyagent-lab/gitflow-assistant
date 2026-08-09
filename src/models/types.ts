@@ -19,6 +19,15 @@ export type OutboundTag =
     | 'STRUCTURE'         // 📁 Panduan struktur folder/file
     | 'PROGRESS';         // 📊 Update fase pembangunan
 
+/** Action button interaktif di dalam bubble chat */
+export interface ChatActionButton {
+    id: string;
+    label: string;
+    action: 'createFeatureBranch' | 'switchBranch' | 'deleteBranch' | 'suggestCommit' | 'showBranchStatus' | 'executeGitCommand';
+    params?: Record<string, string>;
+    icon?: string;
+}
+
 /** Struktur satu pesan chat */
 export interface ChatMessage {
     id: string;
@@ -26,6 +35,7 @@ export interface ChatMessage {
     content: string;
     timestamp: Date;
     outboundTag?: OutboundTag;
+    buttons?: ChatActionButton[];
 }
 
 // ══════════════════════════════════════════════════════════
