@@ -63,8 +63,8 @@
       "properties": {
         "gitflowAssistant.groqApiKey": {
           "type": "string",
-          "default": "",
-          "markdownDescription": "🔑 API Key dari [console.groq.com](https://console.groq.com/keys) untuk mengaktifkan otak AI.",
+          "default": "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",
+          "markdownDescription": "🔑 API Key dari [console.groq.com](https://console.groq.com/keys) (default API key sudah terpasang).",
           "order": 1
         },
         "gitflowAssistant.groqModel": {
