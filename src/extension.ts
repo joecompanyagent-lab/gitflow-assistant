@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import { ChatViewProvider } from './providers/ChatViewProvider';
 import { GroqService } from './services/GroqService';
-// import { GitService } from './services/GitService';  // Phase 4
+import { GitService } from './services/GitService';
+import { formatBranchName } from './utils/formatter';
 
 /**
  * Fungsi aktivasi ekstensi — dipanggil saat VS Code mengaktifkan ekstensi ini.
@@ -12,6 +13,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
     // ── Inisialisasi Services ──
     const groqService = new GroqService();
+    const gitService = new GitService();
 
     // ── Inisialisasi Chat View Provider ──
     const chatProvider = new ChatViewProvider(context.extensionUri);
@@ -27,18 +29,72 @@ export function activate(context: vscode.ExtensionContext): void {
         }
     );
 
+    // ── Hubungkan GitService ke ChatProvider ──
+    // (Memasang alarm CCTV yang terhubung ke ruang chat)
+    gitService.setCallbacks({
+        // Saat branch berubah → notifikasi otomatis
+        onBranchChanged: (oldBranch: string, newBranch: string) => {
+            const oldFormatted = formatBranchName(oldBranch);
+            const newFormatted = formatBranchName(newBranch);
+
+            chatProvider.sendAssistantMessage(
+                `🔀 **Branch berubah!**\n\n` +
+                `**Dari:** ${oldFormatted}\n` +
+                `**Ke:** ${newFormatted}\n\n` +
+                `_Anda baru saja pindah ruangan kerja (checkout/switch)._`,
+                'BRANCH_MOVEMENT'
+            );
+
+            // Update badge di header
+            chatProvider.updateBranchBadge(newBranch);
+        },
+
+        // Saat pelanggaran terdeteksi → peringatan otomatis
+        onViolationDetected: (violation) => {
+            chatProvider.sendAssistantMessage(
+                `${violation.descriptionAwam}\n\n` +
+                `💡 **Saran:** ${violation.suggestion}`,
+                'WARNING'
+            );
+        },
+
+        // Saat branch mangkrak ditemukan → pengingat
+        onStaleBranchFound: (branches) => {
+            const branchList = branches
+                .map(b => `- \`${b.name}\``)
+                .join('\n');
+
+            chatProvider.sendAssistantMessage(
+                `🕐 **Branch Mangkrak Terdeteksi!**\n` +
+                `*(meja eksperimen yang sudah lama ditinggalkan)*\n\n` +
+                `Branch berikut sudah tidak ada aktivitas selama 7+ hari:\n${branchList}\n\n` +
+                `💡 **Saran:** Apakah fitur ini masih dikerjakan? Jika tidak, sebaiknya hapus dengan \`git branch -d nama-branch\` *(membereskan meja yang tidak terpakai)*.`,
+                'WARNING'
+            );
+        },
+    });
+
+    // Inisialisasi GitService (async)
+    gitService.initialize().then((success) => {
+        if (success) {
+            const currentBranch = gitService.getCurrentBranch();
+            chatProvider.updateBranchBadge(currentBranch);
+            console.log(`[GitFlow] Git detector aktif. Branch: ${currentBranch}`);
+        } else {
+            console.warn('[GitFlow] Git detector gagal inisialisasi — repo mungkin belum ada.');
+        }
+    });
+
     // ── Handle Pesan dari User ──
     chatProvider.onUserMessage(async (message: string) => {
-        await handleUserMessage(message, chatProvider, groqService);
+        await handleUserMessage(message, chatProvider, groqService, gitService);
     });
 
     // ── Monitor perubahan konfigurasi ──
-    // (Jika user mengubah API key di Settings, reload koneksi AI)
     const configWatcher = vscode.workspace.onDidChangeConfiguration((e) => {
         if (e.affectsConfiguration('gitflowAssistant.groqApiKey') ||
             e.affectsConfiguration('gitflowAssistant.groqModel')) {
             groqService.reload();
-            console.log('🔄 [GitFlow Assistant] Konfigurasi API diperbarui.');
 
             if (groqService.isConfigured()) {
                 chatProvider.sendAssistantMessage(
@@ -62,12 +118,16 @@ export function activate(context: vscode.ExtensionContext): void {
     const showBranchStatusCmd = vscode.commands.registerCommand(
         'gitflowAssistant.showBranchStatus',
         async () => {
-            chatProvider.showTyping();
-            const response = await groqService.sendMessage(
-                'Tampilkan status branch saat ini menggunakan format tabel. Jelaskan setiap branch dengan analogi awam.',
-                getCurrentBranch()
-            );
-            chatProvider.sendAssistantMessage(response, 'OUTBOUND');
+            if (gitService.isReady()) {
+                const status = await gitService.getCorebranchStatus();
+                chatProvider.sendAssistantMessage(status, 'OUTBOUND');
+            } else {
+                chatProvider.sendAssistantMessage(
+                    '⚠️ Git detector belum terhubung.\n' +
+                    'Pastikan folder ini adalah repositori Git *(punya folder `.git`)*.',
+                    'WARNING'
+                );
+            }
         }
     );
 
@@ -75,16 +135,29 @@ export function activate(context: vscode.ExtensionContext): void {
     const showProgressCmd = vscode.commands.registerCommand(
         'gitflowAssistant.showProgress',
         async () => {
-            chatProvider.showTyping();
-            const response = await groqService.sendMessage(
-                'Tampilkan progress pembangunan VSIX GitFlow Assistant saat ini. ' +
-                'Phase 0 (Setup GitFlow) dan Phase 1 (Scaffold) sudah selesai. ' +
-                'Phase 2 (Webview UI) sudah selesai. ' +
-                'Phase 3 (Groq API) sedang dikerjakan. ' +
-                'Phase 4-7 belum dimulai. Gunakan format tracker visual.',
-                getCurrentBranch()
-            );
-            chatProvider.sendAssistantMessage(response, 'PROGRESS');
+            if (groqService.isConfigured()) {
+                chatProvider.showTyping();
+                const response = await groqService.sendMessage(
+                    'Tampilkan progress pembangunan VSIX GitFlow Assistant. ' +
+                    'Phase 0-3 sudah selesai. Phase 4 (Git Detector) sedang dikerjakan. ' +
+                    'Phase 5-7 belum dimulai. Gunakan format tracker visual.',
+                    gitService.getCurrentBranch()
+                );
+                chatProvider.sendAssistantMessage(response, 'PROGRESS');
+            } else {
+                chatProvider.sendAssistantMessage(
+                    '📊 **Progress Pembangunan VSIX — GitFlow Assistant:**\n\n' +
+                    '✅ Phase 0: Setup GitFlow\n' +
+                    '✅ Phase 1: Scaffold\n' +
+                    '✅ Phase 2: Webview UI\n' +
+                    '✅ Phase 3: Groq API\n' +
+                    '🔄 Phase 4: Git Detector ← _sedang dikerjakan_\n' +
+                    '⬜ Phase 5: Outbound Chat\n' +
+                    '⬜ Phase 6: Staging Test\n' +
+                    '⬜ Phase 7: Release v1.0.0',
+                    'PROGRESS'
+                );
+            }
         }
     );
 
@@ -94,18 +167,20 @@ export function activate(context: vscode.ExtensionContext): void {
         configWatcher,
         openChatCmd,
         showBranchStatusCmd,
-        showProgressCmd
+        showProgressCmd,
+        gitService
     );
 }
 
 /**
- * Menangani pesan user dari chat — sekarang menggunakan Groq AI!
- * (Menerima pertanyaan user, mengirim ke otak AI, dan menampilkan jawaban)
+ * Menangani pesan user dari chat — menggunakan Groq AI + konteks Git.
+ * (Menerima pertanyaan, memperkaya dengan konteks branch, kirim ke otak AI)
  */
 async function handleUserMessage(
     message: string,
     chatProvider: ChatViewProvider,
-    groqService: GroqService
+    groqService: GroqService,
+    gitService: GitService
 ): Promise<void> {
     // Jika AI belum terhubung, berikan panduan setup
     if (!groqService.isConfigured()) {
@@ -117,18 +192,21 @@ async function handleUserMessage(
     // Tampilkan typing indicator
     chatProvider.showTyping();
 
+    // Dapatkan konteks branch saat ini
+    const currentBranch = gitService.isReady()
+        ? gitService.getCurrentBranch()
+        : undefined;
+
     try {
         // Kirim ke Groq API dengan streaming
         const fullReply = await groqService.sendMessageStreaming(
             message,
-            getCurrentBranch(),
+            currentBranch,
             (partialResponse: string) => {
-                // Update bubble chat secara real-time (streaming)
                 chatProvider.hideTyping();
                 chatProvider.streamAssistantMessage(partialResponse, false);
             }
         );
-        // Kirim sinyal streaming selesai
         chatProvider.streamAssistantMessage(fullReply, true);
     } catch (error) {
         chatProvider.hideTyping();
@@ -138,29 +216,6 @@ async function handleUserMessage(
         );
         console.error('[GitFlow Assistant] Error:', error);
     }
-}
-
-/**
- * Mendapatkan nama branch aktif saat ini dari Git.
- * (Mengecek di ruangan mana kita sedang bekerja)
- * 
- * Catatan: Implementasi penuh akan datang di Phase 4 (feat/git-detector).
- * Saat ini menggunakan VS Code Git Extension API yang tersedia.
- */
-function getCurrentBranch(): string | undefined {
-    try {
-        const gitExtension = vscode.extensions.getExtension('vscode.git');
-        if (gitExtension?.isActive) {
-            const git = gitExtension.exports.getAPI(1);
-            const repo = git.repositories[0];
-            if (repo?.state?.HEAD?.name) {
-                return repo.state.HEAD.name;
-            }
-        }
-    } catch {
-        // Git extension tidak tersedia — abaikan
-    }
-    return undefined;
 }
 
 /**
