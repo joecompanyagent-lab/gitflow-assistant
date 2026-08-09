@@ -5,6 +5,13 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.0.0/),
 dan proyek ini menggunakan [Semantic Versioning](https://semver.org/lang/id/).
 
+## [1.1.0] - 2026-08-09
+
+### ✨ Added (Fitur Baru)
+- 🔑 **Multi-API Key Settings & Auto-Fallback**: Menambahkan pengaturan array `gitflowAssistant.groqApiKeys` di VS Code Settings. Pengguna dapat mendaftarkan beberapa Groq API key sekaligus untuk rotasi otomatis (*round-robin*) dan alih kelola otomatis (*auto-fallback*) jika salah satu API key mencapai batas kuota atau rate limit (429).
+
+---
+
 ## [1.0.2] - 2026-08-09
 
 ### 📦 Added & Fixed (Pengemasan Paket VSIX)
