@@ -1,0 +1,63 @@
+/* ══════════════════════════════════════════════════════════
+ * GitFlow Assistant — Main Stylesheet
+ * Styling untuk panel chat di sidebar VS Code
+ *
+ * 📌 Akan diimplementasikan di Phase 2 (feat/webview-ui)
+ * File ini berisi kerangka CSS dasar — akan diperkaya dengan:
+ * - Bubble chat kiri (AI) & kanan (User)
+ * - Dark mode yang mengikuti tema VS Code
+ * - Animasi micro-interaction
+ * - Responsive layout
+ * ══════════════════════════════════════════════════════════ */
+
+/* === CSS Variables — Design Tokens === */
+:root {
+    --gfa-bg-primary: var(--vscode-sideBar-background);
+    --gfa-bg-secondary: var(--vscode-editor-background);
+    --gfa-text-primary: var(--vscode-foreground);
+    --gfa-text-secondary: var(--vscode-descriptionForeground);
+    --gfa-accent: var(--vscode-button-background);
+    --gfa-accent-hover: var(--vscode-button-hoverBackground);
+    --gfa-border: var(--vscode-panel-border);
+    --gfa-input-bg: var(--vscode-input-background);
+    --gfa-input-border: var(--vscode-input-border);
+
+    --gfa-radius-sm: 4px;
+    --gfa-radius-md: 8px;
+    --gfa-radius-lg: 16px;
+    --gfa-spacing-xs: 4px;
+    --gfa-spacing-sm: 8px;
+    --gfa-spacing-md: 12px;
+    --gfa-spacing-lg: 16px;
+    --gfa-spacing-xl: 24px;
+
+    --gfa-font-size-sm: 12px;
+    --gfa-font-size-md: 13px;
+    --gfa-font-size-lg: 14px;
+}
+
+/* === Base Reset === */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--vscode-font-family), -apple-system, sans-serif;
+    font-size: var(--gfa-font-size-md);
+    color: var(--gfa-text-primary);
+    background: var(--gfa-bg-primary);
+    line-height: 1.5;
+    overflow-x: hidden;
+}
+
+/* === Placeholder — akan diisi Phase 2 === */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: var(--gfa-spacing-md);
+}
