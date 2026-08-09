@@ -5,6 +5,13 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.0.0/),
 dan proyek ini menggunakan [Semantic Versioning](https://semver.org/lang/id/).
 
+## [1.0.1] - 2026-08-09
+
+### 🔑 Added (Ditambahkan)
+- **Default Groq API Key**: Memasang API key bawaan (`gsk_aog...`) sebagai default fallback sehingga ekstensi langsung aktif dan bisa digunakan out-of-the-box tanpa perlu konfigurasi manual dari user.
+
+---
+
 ## [1.0.0] - 2026-08-09
 
 ### 🚀 Release Perdana (Initial Release)
