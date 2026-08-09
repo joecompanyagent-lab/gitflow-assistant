@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { ChatViewProvider } from './providers/ChatViewProvider';
 import { GroqService } from './services/GroqService';
 import { GitService } from './services/GitService';
+import { NotificationService } from './services/NotificationService';
 import { formatBranchName } from './utils/formatter';
 
 /**
@@ -18,6 +19,9 @@ export function activate(context: vscode.ExtensionContext): void {
     // ── Inisialisasi Chat View Provider ──
     const chatProvider = new ChatViewProvider(context.extensionUri);
 
+    // ── Inisialisasi Notification Service (Engine Proaktif) ──
+    const notificationService = new NotificationService(chatProvider, gitService);
+
     // Daftarkan webview view provider ke sidebar
     const chatViewRegistration = vscode.window.registerWebviewViewProvider(
         ChatViewProvider.viewType,
@@ -29,59 +33,55 @@ export function activate(context: vscode.ExtensionContext): void {
         }
     );
 
-    // ── Hubungkan GitService ke ChatProvider ──
-    // (Memasang alarm CCTV yang terhubung ke ruang chat)
+    // ── Hubungkan GitService ke NotificationService & ChatProvider ──
     gitService.setCallbacks({
-        // Saat branch berubah → notifikasi otomatis
+        // Skenario 2: Branch Event Notification (Movement)
         onBranchChanged: (oldBranch: string, newBranch: string) => {
-            const oldFormatted = formatBranchName(oldBranch);
-            const newFormatted = formatBranchName(newBranch);
-
-            chatProvider.sendAssistantMessage(
-                `🔀 **Branch berubah!**\n\n` +
-                `**Dari:** ${oldFormatted}\n` +
-                `**Ke:** ${newFormatted}\n\n` +
-                `_Anda baru saja pindah ruangan kerja (checkout/switch)._`,
-                'BRANCH_MOVEMENT'
+            notificationService.sendBranchEventNotification(
+                oldBranch,
+                newBranch,
+                'git checkout / git switch',
+                'User / Developer',
+                `Pindah dari ${oldBranch} ke ${newBranch}`,
+                `Pastikan Anda berada di branch yang tepat sebelum membuat/mengubah kode`
             );
 
-            // Update badge di header
+            // Update badge di header chat
             chatProvider.updateBranchBadge(newBranch);
         },
 
-        // Saat pelanggaran terdeteksi → peringatan otomatis
+        // Skenario 3: Proactive Violation Warning
         onViolationDetected: (violation) => {
-            chatProvider.sendAssistantMessage(
-                `${violation.descriptionAwam}\n\n` +
-                `💡 **Saran:** ${violation.suggestion}`,
-                'WARNING'
-            );
+            notificationService.sendProactiveWarning(violation);
         },
 
-        // Saat branch mangkrak ditemukan → pengingat
-        onStaleBranchFound: (branches) => {
-            const branchList = branches
-                .map(b => `- \`${b.name}\``)
-                .join('\n');
-
-            chatProvider.sendAssistantMessage(
-                `🕐 **Branch Mangkrak Terdeteksi!**\n` +
-                `*(meja eksperimen yang sudah lama ditinggalkan)*\n\n` +
-                `Branch berikut sudah tidak ada aktivitas selama 7+ hari:\n${branchList}\n\n` +
-                `💡 **Saran:** Apakah fitur ini masih dikerjakan? Jika tidak, sebaiknya hapus dengan \`git branch -d nama-branch\` *(membereskan meja yang tidak terpakai)*.`,
-                'WARNING'
-            );
+        // Skenario 4: Stale Branch Alert (>7 hari)
+        onStaleBranchFound: (staleBranches) => {
+            notificationService.sendStaleBranchAlert(staleBranches);
         },
     });
 
-    // Inisialisasi GitService (async)
+    // Inisialisasi GitService
     gitService.initialize().then((success) => {
         if (success) {
             const currentBranch = gitService.getCurrentBranch();
             chatProvider.updateBranchBadge(currentBranch);
             console.log(`[GitFlow] Git detector aktif. Branch: ${currentBranch}`);
-        } else {
-            console.warn('[GitFlow] Git detector gagal inisialisasi — repo mungkin belum ada.');
+
+            // Trigger Skenario 1: Initial Greeting setelah Git service siap
+            setTimeout(() => {
+                notificationService.sendInitialGreeting();
+            }, 1000);
+        }
+    });
+
+    // ── Skenario 5: File & Structure Guard Watcher ──
+    // Dengarkan perubahan dokumen di editor
+    const textDocumentWatcher = vscode.workspace.onDidSaveTextDocument((document) => {
+        if (gitService.isReady()) {
+            const currentBranch = gitService.getCurrentBranch();
+            const relativePath = vscode.workspace.asRelativePath(document.uri);
+            notificationService.inspectFileChangeForBranch(relativePath, currentBranch);
         }
     });
 
@@ -139,8 +139,8 @@ export function activate(context: vscode.ExtensionContext): void {
                 chatProvider.showTyping();
                 const response = await groqService.sendMessage(
                     'Tampilkan progress pembangunan VSIX GitFlow Assistant. ' +
-                    'Phase 0-3 sudah selesai. Phase 4 (Git Detector) sedang dikerjakan. ' +
-                    'Phase 5-7 belum dimulai. Gunakan format tracker visual.',
+                    'Phase 0-4 sudah selesai. Phase 5 (Outbound Chat & Notification Engine) sedang dikerjakan. ' +
+                    'Phase 6-7 belum dimulai. Gunakan format tracker visual.',
                     gitService.getCurrentBranch()
                 );
                 chatProvider.sendAssistantMessage(response, 'PROGRESS');
@@ -151,8 +151,8 @@ export function activate(context: vscode.ExtensionContext): void {
                     '✅ Phase 1: Scaffold\n' +
                     '✅ Phase 2: Webview UI\n' +
                     '✅ Phase 3: Groq API\n' +
-                    '🔄 Phase 4: Git Detector ← _sedang dikerjakan_\n' +
-                    '⬜ Phase 5: Outbound Chat\n' +
+                    '✅ Phase 4: Git Detector\n' +
+                    '🔄 Phase 5: Outbound Chat Engine ← _sedang dikerjakan_\n' +
                     '⬜ Phase 6: Staging Test\n' +
                     '⬜ Phase 7: Release v1.0.0',
                     'PROGRESS'
@@ -165,6 +165,7 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
         chatViewRegistration,
         configWatcher,
+        textDocumentWatcher,
         openChatCmd,
         showBranchStatusCmd,
         showProgressCmd,
