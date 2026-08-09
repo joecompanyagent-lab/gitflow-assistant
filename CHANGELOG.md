@@ -5,26 +5,33 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.0.0/),
 dan proyek ini menggunakan [Semantic Versioning](https://semver.org/lang/id/).
 
+## [1.3.1] - 2026-08-09
+
+### 🐛 Fixed (Perbaikan Bug Loading)
+- **Webview Loading Fix**: Memperbaiki masalah Webview yang menampilkan bar loading biru secara terus-menerus (`acquireVsCodeApi` yang dipanggil dua kali). Penanganan tombol bersihkan chat disatukan di `main.js` sehingga panel Webview dimuat seketika dan 100% lancar.
+
+---
+
 ## [1.3.0] - 2026-08-09
 
 ### ✨ Added (Fitur Baru: Smart Fallback, Offline Mode & CI/CD Pipeline)
-- 🤖 **Smart Model Fallback**: Jika model utama yang dipilih (misal `llama-3.3-70b-versatile`) sibuk atau bermasalah, sistem secara otomatis beralih sementara ke model ultra-cepat `llama-3.1-8b-instant`.
-- 🌐 **Offline Knowledge Base**: `OfflineKnowledgeService` menyajikan pustaka pengetahuan lokal interaktif tentang alur GitFlow, Conventional Commits, dan prosedur darurat Hotfix saat koneksi internet terputus.
-- ⚙️ **CI/CD GitHub Actions Pipeline**: Workflow `.github/workflows/build-and-test.yml` otomatis menguji kompilasi TypeScript, menjalankan test suite pada Node 18 & 20, serta mengemas berkas `.vsix` installer secara otomatis saat ada push/PR/Tag.
+- 🤖 **Smart Model Fallback**: Beralih otomatis ke model ultra-cepat `llama-3.1-8b-instant` jika model utama bermasalah.
+- 🌐 **Offline Knowledge Base**: `OfflineKnowledgeService` menyajikan pustaka pengetahuan lokal interaktif saat offline.
+- ⚙️ **CI/CD GitHub Actions Pipeline**: Workflow `.github/workflows/build-and-test.yml` otomatis menguji kompilasi dan mengemas `.vsix`.
 
 ---
 
 ## [1.2.0] - 2026-08-09
 
 ### 🔘 Added (Fitur Baru: One-Click Git Buttons)
-- **Tombol Aksi Cepat Interaktif di Chat UI**: Menambahkan tombol aksi interaktif di dalam gelembung chat AI (`feat/*` creation, branch switch, branch delete, conventional commit guide).
+- **Tombol Aksi Cepat Interaktif di Chat UI**: Tombol aksi interaktif di dalam gelembung chat AI.
 
 ---
 
 ## [1.1.0] - 2026-08-09
 
 ### ✨ Added (Fitur Baru)
-- 🔑 **Multi-API Key Settings & Auto-Fallback**: Menambahkan pengaturan array `gitflowAssistant.groqApiKeys` di VS Code Settings untuk rotasi dan fallback otomatis.
+- 🔑 **Multi-API Key Settings & Auto-Fallback**: Menambahkan pengaturan array `gitflowAssistant.groqApiKeys` di VS Code Settings.
 
 ---
 
