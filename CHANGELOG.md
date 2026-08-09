@@ -5,6 +5,17 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.0.0/),
 dan proyek ini menggunakan [Semantic Versioning](https://semver.org/lang/id/).
 
+## [1.2.0] - 2026-08-09
+
+### 🔘 Added (Fitur Baru: One-Click Git Buttons)
+- **Tombol Aksi Cepat Interaktif di Chat UI**: Menambahkan tombol aksi interaktif di dalam gelembung chat AI:
+  - 🌿 **Buat Feature Branch**: Membuat branch `feat/nama-fitur` dari `dev` secara otomatis dengan masukan nama fitur.
+  - 🔀 **Pindah Branch**: Memilih dan berpindah ruangan kerja (`git checkout`) via QuickPick VS Code.
+  - 🧹 **Bersihkan Branch Mangkrak**: Menghapus branch yang sudah tidak terpakai (`git branch -d`).
+  - 💡 **Buat Commit Rapi**: Membimbing penulisan commit message berstandar Conventional Commits (`feat:`, `fix:`, `docs:`, dll) dan otomatis mengeksekusinya di terminal.
+
+---
+
 ## [1.1.0] - 2026-08-09
 
 ### ✨ Added (Fitur Baru)
