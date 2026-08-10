@@ -478,12 +478,30 @@
     });
   }
 
+  var processStartTime = 0;
+  var processTimerInterval = null;
+
   function toggleLoading(show) {
+    var loadingText = loadingIndicator ? loadingIndicator.querySelector('.loading-text') : null;
     if (show) {
-      loadingIndicator.classList.remove('hidden');
+      processStartTime = Date.now();
+      if (loadingIndicator) loadingIndicator.classList.remove('hidden');
+      if (processTimerInterval) clearInterval(processTimerInterval);
+
+      processTimerInterval = setInterval(function () {
+        var elapsedSec = ((Date.now() - processStartTime) / 1000).toFixed(1);
+        if (loadingText) {
+          loadingText.textContent = 'GitFlow Assistant sedang memproses & menganalisis alur (' + elapsedSec + 's)...';
+        }
+      }, 100);
+
       scrollToBottom();
     } else {
-      loadingIndicator.classList.add('hidden');
+      if (processTimerInterval) {
+        clearInterval(processTimerInterval);
+        processTimerInterval = null;
+      }
+      if (loadingIndicator) loadingIndicator.classList.add('hidden');
     }
   }
 

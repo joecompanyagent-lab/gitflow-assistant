@@ -2,7 +2,7 @@
   "name": "gitflow-assistant",
   "displayName": "GitFlow Assistant",
   "description": "AI-powered GitFlow chatbot yang membimbing alur kerja 5 branch utama (feat, dev, staging, main, hotfix) dengan bahasa awam. Mendukung Groq, OpenAI, Anthropic, dan Google Gemini.",
-  "version": "8.5.0",
+  "version": "8.5.1",
   "publisher": "gitflow-team",
   "engines": {
     "vscode": "^1.85.0"
@@ -124,7 +124,7 @@
         {
           "type": "webview",
           "id": "gitflow-chat-view",
-          "name": "GitFlow Chat v8.5.0"
+          "name": "GitFlow Chat v8.5.1"
         }
       ]
     },

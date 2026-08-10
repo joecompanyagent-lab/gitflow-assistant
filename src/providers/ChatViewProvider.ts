@@ -640,9 +640,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     const msg: ChatMessage = {
       id: generateMessageId(),
       role: 'assistant',
-      content: `[${tag}] **Jupytext Clean Notebook Generator**\n\n${result.message}${result.filePath ? `\n\nBerkas: \`${result.filePath}\`` : ''}`,
-      timestamp: Date.now(),
-      tag: result.success ? 'PROGRESS' : 'WARNING'
+      content: `**Jupytext Clean Notebook Generator**\n\n${result.message}${result.filePath ? `\n\nBerkas: \`${result.filePath}\`` : ''}`,
+      timestamp: Date.now()
     };
     this.postMessage({ type: 'receiveMessage', message: msg });
   }
@@ -657,9 +656,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         const cleanMsg: ChatMessage = {
           id: generateMessageId(),
           role: 'assistant',
-          content: `[HEALTH_CHECK] **Pelindung Berkas Besar & Dataset ML**\n\nTidak terdeteksi berkas berukuran besar (>= 50 MB) di meja kerja Git Anda. Repositori Anda aman dan siap di-commit!`,
-          timestamp: Date.now(),
-          tag: 'HEALTH_CHECK'
+          content: `**Pelindung Berkas Besar & Dataset ML**\n\nTidak terdeteksi berkas berukuran besar (>= 50 MB) di meja kerja Git Anda. Repositori Anda aman dan siap di-commit!`,
+          timestamp: Date.now()
         };
         this.postMessage({ type: 'receiveMessage', message: cleanMsg });
         return;
@@ -671,8 +669,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         id: generateMessageId(),
         role: 'assistant',
         content: advice,
-        timestamp: Date.now(),
-        tag: 'WARNING'
+        timestamp: Date.now()
       };
       this.postMessage({ type: 'receiveMessage', message: aiMsg });
     } catch (error) {
@@ -690,9 +687,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     const msg: ChatMessage = {
       id: generateMessageId(),
       role: 'assistant',
-      content: `[PROGRESS] **MLOps Experiment Tracker**\n\n${result.message}\n\nCatatan eksperimen tersimpan secara otomatis terikat dengan Commit Hash \`${result.commitHash}\` di berkas \`ML_EXPERIMENTS.md\`.`,
-      timestamp: Date.now(),
-      tag: 'PROGRESS'
+      content: `**MLOps Experiment Tracker**\n\n${result.message}\n\nCatatan eksperimen tersimpan secara otomatis terikat dengan Commit Hash \`${result.commitHash}\` di berkas \`ML_EXPERIMENTS.md\`.`,
+      timestamp: Date.now()
     };
     this.postMessage({ type: 'receiveMessage', message: msg });
   }
@@ -703,23 +699,20 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       const msg: ChatMessage = {
         id: generateMessageId(),
         role: 'assistant',
-        content: `[STRUCTURE] **Isolated Worktree Playground (Meja Uji Coba)**\n\nDaftar Worktree aktif saat ini:\n\`\`\`text\n${list}\n\`\`\`\n\n**Cara Penggunaan**:\n- Ketik \`/worktree <nama-uji-coba>\` untuk membuat meja uji coba terisolasi baru!\n- Contoh: \`/worktree uji-model-resnet\``,
-        timestamp: Date.now(),
-        tag: 'STRUCTURE'
+        content: `**Isolated Worktree Playground (Meja Uji Coba)**\n\nDaftar Worktree aktif saat ini:\n\`\`\`text\n${list}\n\`\`\`\n\n**Cara Penggunaan**:\n- Ketik \`/worktree <nama-uji-coba>\` untuk membuat meja uji coba terisolasi baru!\n- Contoh: \`/worktree uji-model-resnet\``,
+        timestamp: Date.now()
       };
       this.postMessage({ type: 'receiveMessage', message: msg });
       return;
     }
 
     const result = this.gitService.createGitWorktree(query);
-    const tag = result.success ? 'PROGRESS' : 'WARNING';
 
     const msg: ChatMessage = {
       id: generateMessageId(),
       role: 'assistant',
-      content: `[${tag}] **Isolated Worktree Playground**\n\n${result.message}`,
-      timestamp: Date.now(),
-      tag: result.success ? 'PROGRESS' : 'WARNING'
+      content: `**Isolated Worktree Playground**\n\n${result.message}`,
+      timestamp: Date.now()
     };
     this.postMessage({ type: 'receiveMessage', message: msg });
   }
@@ -819,7 +812,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
               <path d="M6 21V9a9 9 0 0 0 9 9"/>
             </svg>
           </span>
-          <h1>GitFlow Assistant <span class="version-badge">v8.5.0</span></h1>
+          <h1>GitFlow Assistant <span class="version-badge">v8.5.1</span></h1>
         </div>
         <div class="header-actions">
           <button id="gear-toggle-btn" class="gear-btn" title="Pengaturan Provider, Model & API Key">
