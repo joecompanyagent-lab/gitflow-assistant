@@ -374,6 +374,8 @@
         '</div>';
     });
 
+    html = renderMarkdownTables(html);
+
     html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
     html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     html = html.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
@@ -383,6 +385,63 @@
     html = html.replace(/^[\s]*[-\u2022] (.+)$/gm, '  \u00b7 $1');
     html = html.replace(/^(\d+)\. (.+)$/gm, '  $1. $2');
     html = html.replace(/\n/g, '<br>');
+    return html;
+  }
+
+  function renderMarkdownTables(text) {
+    var lines = text.split('\n');
+    var result = [];
+    var inTable = false;
+    var tableLines = [];
+
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+        inTable = true;
+        tableLines.push(line);
+      } else {
+        if (inTable) {
+          result.push(buildTableHtml(tableLines));
+          inTable = false;
+          tableLines = [];
+        }
+        result.push(line);
+      }
+    }
+    if (inTable && tableLines.length > 0) {
+      result.push(buildTableHtml(tableLines));
+    }
+    return result.join('\n');
+  }
+
+  function buildTableHtml(lines) {
+    if (lines.length < 2) return lines.join('\n');
+    var html = '<div class="table-wrapper"><table class="ide-table">';
+
+    lines.forEach(function (line, index) {
+      if (line.includes('|-') || line.includes('| -') || line.includes('|:')) {
+        return;
+      }
+      var cells = line.split('|').map(function (c) { return c.trim(); });
+      if (cells[0] === '') cells.shift();
+      if (cells[cells.length - 1] === '') cells.pop();
+
+      if (index === 0) {
+        html += '<thead><tr>';
+        cells.forEach(function (cell) {
+          html += '<th>' + cell + '</th>';
+        });
+        html += '</tr></thead><tbody>';
+      } else {
+        html += '<tr>';
+        cells.forEach(function (cell) {
+          html += '<td>' + cell + '</td>';
+        });
+        html += '</tr>';
+      }
+    });
+
+    html += '</tbody></table></div>';
     return html;
   }
 

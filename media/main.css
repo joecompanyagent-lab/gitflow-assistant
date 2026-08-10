@@ -504,17 +504,27 @@ body {
   border-left: 2px solid var(--vscode-textLink-foreground, #58a6ff);
 }
 
-/* --- User Bubble (RIGHT) --- */
+/* --- User Bubble (Matching IDE Chat Prompt Card) --- */
 .message.user {
-  align-self: flex-end;
+  align-self: flex-start;
+  width: 100%;
+  margin-bottom: 8px;
 }
 
 .message.user .bubble {
-  background: var(--vscode-button-background);
-  border: none;
-  border-radius: 6px 2px 6px 6px;
-  padding: 10px 12px;
-  color: var(--vscode-button-foreground);
+  background: var(--vscode-editor-background, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--vscode-widget-border, rgba(255, 255, 255, 0.08));
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: var(--vscode-foreground, #ececec);
+}
+
+.message.user .message-sender .sender-icon {
+  background: var(--vscode-button-background, #007acc);
+  color: var(--vscode-button-foreground, #ffffff);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-weight: 700;
 }
 
 /* --- Message Tag --- */
@@ -739,6 +749,52 @@ body {
   color: var(--vscode-descriptionForeground);
   margin-top: 3px;
   padding: 0 2px;
+}
+
+/* --- IDE Table Styling (Exact Match to Antigravity IDE Chat UI) --- */
+.table-wrapper {
+  margin: 10px 0;
+  border-radius: 8px;
+  border: 1px solid var(--vscode-widget-border, rgba(255, 255, 255, 0.12));
+  overflow-x: auto;
+  background: var(--vscode-editor-background, #18181b);
+}
+
+.ide-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.ide-table th {
+  background: var(--vscode-sideBarSectionHeader-background, rgba(255, 255, 255, 0.06));
+  color: var(--vscode-foreground, #e4e4e7);
+  font-weight: 600;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--vscode-widget-border, rgba(255, 255, 255, 0.1));
+  white-space: nowrap;
+}
+
+.ide-table td {
+  padding: 8px 12px;
+  color: var(--vscode-foreground, #d4d4d8);
+  border-bottom: 1px solid var(--vscode-widget-border, rgba(255, 255, 255, 0.05));
+  line-height: 1.5;
+  vertical-align: top;
+}
+
+.ide-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ide-table td code {
+  background: rgba(229, 192, 123, 0.15);
+  color: #e5c07b;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: 11px;
 }
 
 .message.user .message-time {

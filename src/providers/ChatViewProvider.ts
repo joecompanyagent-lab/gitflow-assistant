@@ -819,7 +819,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
               <path d="M6 21V9a9 9 0 0 0 9 9"/>
             </svg>
           </span>
-          <h1>GitFlow Assistant <span class="version-badge">v8.3.3</span></h1>
+          <h1>GitFlow Assistant <span class="version-badge">v8.4.0</span></h1>
         </div>
         <div class="header-actions">
           <button id="gear-toggle-btn" class="gear-btn" title="Pengaturan Provider, Model & API Key">
