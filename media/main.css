@@ -49,6 +49,17 @@ body {
   gap: 6px;
 }
 
+.version-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 8px;
+  background: var(--vscode-badge-background, #007acc);
+  color: var(--vscode-badge-foreground, #ffffff);
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
