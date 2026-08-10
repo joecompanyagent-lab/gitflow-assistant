@@ -229,6 +229,16 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       await this.handleCheckLargeFilesCommand();
       return;
     }
+    if (trimmed.startsWith('/mlog') || trimmed.startsWith('/experiment')) {
+      const q = trimmed.replace(/^\/(mlog|experiment)/, '').trim();
+      await this.handleMLExperimentCommand(q);
+      return;
+    }
+    if (trimmed.startsWith('/worktree') || trimmed.startsWith('/playground')) {
+      const q = trimmed.replace(/^\/(worktree|playground)/, '').trim();
+      await this.handleWorktreeCommand(q);
+      return;
+    }
 
     // Interactive Branch Safety Guard check
     const status = await this.gitService.getBranchStatus();
@@ -665,6 +675,47 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     }
   }
 
+  public async handleMLExperimentCommand(query: string): Promise<void> {
+    const details = query || 'Pembaruan Model / Hyperparameter Experiment';
+    const result = this.gitService.recordMLExperiment(details);
+
+    const msg: ChatMessage = {
+      id: generateMessageId(),
+      role: 'assistant',
+      content: `[PROGRESS] **MLOps Experiment Tracker**\n\n${result.message}\n\nCatatan eksperimen tersimpan secara otomatis terikat dengan Commit Hash \`${result.commitHash}\` di berkas \`ML_EXPERIMENTS.md\`.`,
+      timestamp: Date.now(),
+      tag: 'PROGRESS'
+    };
+    this.postMessage({ type: 'receiveMessage', message: msg });
+  }
+
+  public async handleWorktreeCommand(query: string): Promise<void> {
+    if (!query) {
+      const list = this.gitService.listGitWorktrees();
+      const msg: ChatMessage = {
+        id: generateMessageId(),
+        role: 'assistant',
+        content: `[STRUCTURE] **Isolated Worktree Playground (Meja Uji Coba)**\n\nDaftar Worktree aktif saat ini:\n\`\`\`text\n${list}\n\`\`\`\n\n**Cara Penggunaan**:\n- Ketik \`/worktree <nama-uji-coba>\` untuk membuat meja uji coba terisolasi baru!\n- Contoh: \`/worktree uji-model-resnet\``,
+        timestamp: Date.now(),
+        tag: 'STRUCTURE'
+      };
+      this.postMessage({ type: 'receiveMessage', message: msg });
+      return;
+    }
+
+    const result = this.gitService.createGitWorktree(query);
+    const tag = result.success ? 'PROGRESS' : 'WARNING';
+
+    const msg: ChatMessage = {
+      id: generateMessageId(),
+      role: 'assistant',
+      content: `[${tag}] **Isolated Worktree Playground**\n\n${result.message}`,
+      timestamp: Date.now(),
+      tag: result.success ? 'PROGRESS' : 'WARNING'
+    };
+    this.postMessage({ type: 'receiveMessage', message: msg });
+  }
+
   private async handleBranchChange(status: BranchStatus): Promise<void> {
     this.postMessage({ type: 'branchUpdate', branchStatus: status });
     const config = vscode.workspace.getConfiguration('gitflowAssistant');
@@ -837,6 +888,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       <button class="chip-btn" data-cmd="/score" title="Nilai kualitas commit">Skor Kualitas</button>
       <button class="chip-btn" data-cmd="/notebook" title="Bersihkan metadata output Jupyter Notebook (.ipynb)">Bersihkan Notebook</button>
       <button class="chip-btn" data-cmd="/dataset" title="Periksa berkas ukuran besar (>=50MB)">Cek File Besar</button>
+      <button class="chip-btn" data-cmd="/mlog" title="Catat eksperimen ML & hyperparameter">Catat Eksperimen</button>
+      <button class="chip-btn" data-cmd="/worktree" title="Buat meja uji coba terisolasi">Meja Uji Coba</button>
       <button class="chip-btn" data-cmd="/pr" title="Buat ringkasan PR">Ringkas PR</button>
       <button class="chip-btn" data-cmd="/compare" title="Bandingkan & audit branch">Cek Kesehatan</button>
       <button class="chip-btn" data-cmd="/history" title="Cari riwayat commit">Cari Riwayat</button>

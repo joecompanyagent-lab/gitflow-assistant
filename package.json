@@ -2,7 +2,7 @@
   "name": "gitflow-assistant",
   "displayName": "GitFlow Assistant",
   "description": "AI-powered GitFlow chatbot yang membimbing alur kerja 5 branch utama (feat, dev, staging, main, hotfix) dengan bahasa awam. Mendukung Groq, OpenAI, Anthropic, dan Google Gemini.",
-  "version": "8.0.1",
+  "version": "8.1.0",
   "publisher": "gitflow-team",
   "engines": {
     "vscode": "^1.85.0"
@@ -81,6 +81,16 @@
         "command": "gitflowAssistant.checkLargeFiles",
         "title": "GitFlow: Pelindung Berkas Besar & Dataset ML (/dataset)",
         "icon": "$(warning)"
+      },
+      {
+        "command": "gitflowAssistant.mlLog",
+        "title": "GitFlow: MLOps Experiment Tracker (/mlog)",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "gitflowAssistant.worktreePlayground",
+        "title": "GitFlow: Isolated Worktree Playground (/worktree)",
+        "icon": "$(folder-library)"
       }
     ],
     "menus": {

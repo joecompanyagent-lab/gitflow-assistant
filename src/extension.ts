@@ -97,6 +97,14 @@ export function activate(context: vscode.ExtensionContext): void {
     chatProvider.handleCheckLargeFilesCommand();
   });
 
+  const mlLogCmd = vscode.commands.registerCommand('gitflowAssistant.mlLog', () => {
+    chatProvider.handleMLExperimentCommand('');
+  });
+
+  const worktreePlaygroundCmd = vscode.commands.registerCommand('gitflowAssistant.worktreePlayground', () => {
+    chatProvider.handleWorktreeCommand('');
+  });
+
   context.subscriptions.push(
     viewRegistration,
     configListener,
@@ -114,6 +122,8 @@ export function activate(context: vscode.ExtensionContext): void {
     scorecardCmd,
     cleanNotebookCmd,
     checkLargeFilesCmd,
+    mlLogCmd,
+    worktreePlaygroundCmd,
     { dispose: () => gitService.dispose() }
   );
 }

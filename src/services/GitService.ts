@@ -445,7 +445,7 @@ export class GitService {
         if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
           const stats = fs.statSync(fullPath);
           const sizeMB = stats.size / (1024 * 1024);
-          if (sizeMB >= thresholdMB) {
+          if (sizeMB >= thresholdMB || /\.(pt|bin|safetensors|onnx|ckpt|h5|tflite)$/i.test(rawPath)) {
             largeFiles.push({ filePath: rawPath, sizeMB: Math.round(sizeMB * 10) / 10 });
           }
         }
@@ -455,6 +455,77 @@ export class GitService {
     }
 
     return largeFiles;
+  }
+
+  public recordMLExperiment(details: string): { success: boolean; commitHash: string; filePath: string; message: string } {
+    const cwd = this.getWorkspaceFolder();
+    if (!cwd) return { success: false, commitHash: '', filePath: '', message: 'Workspace Git tidak terdeteksi.' };
+
+    try {
+      let commitHash = 'UNCOMMITTED';
+      try {
+        commitHash = execSync('git rev-parse --short HEAD', { cwd, encoding: 'utf8' }).trim();
+      } catch { /* use fallback */ }
+
+      const fs = require('fs');
+      const path = require('path');
+      const logFile = path.join(cwd, 'ML_EXPERIMENTS.md');
+
+      const dateStr = new Date().toISOString().split('T')[0];
+      const timeStr = new Date().toTimeString().split(' ')[0];
+
+      let existingContent = '';
+      if (fs.existsSync(logFile)) {
+        existingContent = fs.readFileSync(logFile, 'utf8');
+      } else {
+        existingContent = `# Buku Catatan Eksperimen Machine Learning (MLOps Log)\n\n| Tanggal | Jam | Branch | Commit Hash | Detail Eksperimen & Hasil |\n|---|---|---|---|---|\n`;
+      }
+
+      const status = execSync('git rev-parse --abbrev-ref HEAD', { cwd, encoding: 'utf8' }).trim();
+      const newEntry = `| ${dateStr} | ${timeStr} | \`${status}\` | \`${commitHash}\` | ${details || 'Eksperimen Standar'} |\n`;
+
+      fs.writeFileSync(logFile, existingContent + newEntry, 'utf8');
+
+      return {
+        success: true,
+        commitHash,
+        filePath: 'ML_EXPERIMENTS.md',
+        message: `Eksperimen ML berhasil dicatat ke \`ML_EXPERIMENTS.md\` (Commit Hash: \`${commitHash}\`)!`
+      };
+    } catch (e) {
+      return { success: false, commitHash: '', filePath: '', message: `Gagal mencatat eksperimen: ${(e as Error).message}` };
+    }
+  }
+
+  public createGitWorktree(worktreeName: string): { success: boolean; path: string; message: string } {
+    const cwd = this.getWorkspaceFolder();
+    if (!cwd) return { success: false, path: '', message: 'Workspace Git tidak terdeteksi.' };
+
+    const name = worktreeName.replace(/[^a-zA-Z0-9_-]/g, '') || `exp-${Date.now()}`;
+    const path = require('path');
+    const targetPath = path.join(cwd, '..', `worktree-${name}`);
+
+    try {
+      execSync(`git worktree add "${targetPath}" -b "exp/${name}"`, { cwd, encoding: 'utf8' });
+      return {
+        success: true,
+        path: targetPath,
+        message: `Meja Uji Coba Terisolasi \`worktree-${name}\` berhasil dibuat pada branch \`exp/${name}\`!\n\nFolder lokasi: \`${targetPath}\``
+      };
+    } catch (e) {
+      return { success: false, path: targetPath, message: `Gagal membuat worktree: ${(e as Error).message}` };
+    }
+  }
+
+  public listGitWorktrees(): string {
+    const cwd = this.getWorkspaceFolder();
+    if (!cwd) return 'Workspace Git tidak terdeteksi.';
+
+    try {
+      return execSync('git worktree list', { cwd, encoding: 'utf8' }).trim();
+    } catch (e) {
+      return `Gagal membaca worktree list: ${(e as Error).message}`;
+    }
   }
 
   private getWorkspaceFolder(): string | undefined {
