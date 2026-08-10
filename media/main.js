@@ -280,12 +280,16 @@
     }
   });
 
-  // --- Render Chat Message ---
+  // --- Render Chat Message (IDE Chat Style) ---
   function appendMessage(msg) {
     if (!msg) return;
     var wrapper = document.createElement('div');
     wrapper.classList.add('message', msg.role);
     var html = '';
+
+    // IDE Chat Sender Header Badge
+    var senderName = msg.role === 'user' ? 'Anda' : 'GitFlow Assistant';
+    html += '<div class="message-sender"><span class="sender-icon">' + (msg.role === 'user' ? 'USER' : 'AI') + '</span> ' + senderName + '</div>';
 
     if (msg.tag) {
       var tagLabels = {
@@ -308,38 +312,50 @@
 
     wrapper.innerHTML = html;
 
-    // Attach 1-Click Copy Buttons to code blocks
-    var pres = wrapper.querySelectorAll('pre');
-    pres.forEach(function (pre) {
-      var copyBtn = document.createElement('button');
-      copyBtn.className = 'copy-code-btn';
-      copyBtn.textContent = 'Salin';
-      copyBtn.title = 'Salin Kode ke Clipboard';
-      copyBtn.addEventListener('click', function () {
-        var codeElem = pre.querySelector('code');
-        var text = codeElem ? codeElem.innerText : pre.innerText;
-        navigator.clipboard.writeText(text);
-        copyBtn.textContent = 'Tersalin!';
-        setTimeout(function () { copyBtn.textContent = 'Salin'; }, 2000);
-      });
-      pre.style.position = 'relative';
-      pre.appendChild(copyBtn);
+    // Attach 1-Click Copy Buttons to code block action bars
+    var wrappers = wrapper.querySelectorAll('.code-block-wrapper');
+    wrappers.forEach(function (blockWrap) {
+      var copyBtn = blockWrap.querySelector('.copy-code-btn');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', function () {
+          var codeElem = blockWrap.querySelector('code');
+          var text = codeElem ? codeElem.innerText : blockWrap.innerText;
+          navigator.clipboard.writeText(text);
+          copyBtn.textContent = 'Tersalin!';
+          setTimeout(function () { copyBtn.textContent = 'Salin'; }, 2000);
+        });
+      }
     });
 
     chatMessages.appendChild(wrapper);
     scrollToBottom();
   }
 
-  // --- Basic Markdown Renderer ---
+  // --- Basic Markdown Renderer with IDE Chat UI Enhancements ---
   function renderMarkdown(text) {
     if (!text) return '';
     var html = text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
-    html = html.replace(/```([\s\S]*?)```/g, function (match, code) {
-      return '<pre><code>' + code.trim() + '</code></pre>';
+
+    // Fenced Code Blocks with Language Header & Action Bar
+    html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, function (match, lang, code) {
+      var langName = lang ? lang.toUpperCase() : 'CODE';
+      return '<div class="code-block-wrapper">' +
+        '<div class="code-header"><span class="code-lang">' + langName + '</span>' +
+        '<div class="code-actions"><button class="copy-code-btn" title="Salin Kode">Salin</button></div></div>' +
+        '<pre><code>' + code.trim() + '</code></pre>' +
+        '</div>';
     });
+    html = html.replace(/```([\s\S]*?)```/g, function (match, code) {
+      return '<div class="code-block-wrapper">' +
+        '<div class="code-header"><span class="code-lang">CODE</span>' +
+        '<div class="code-actions"><button class="copy-code-btn" title="Salin Kode">Salin</button></div></div>' +
+        '<pre><code>' + code.trim() + '</code></pre>' +
+        '</div>';
+    });
+
     html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
     html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     html = html.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');

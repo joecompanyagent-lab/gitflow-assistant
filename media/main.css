@@ -586,6 +586,102 @@ body {
   text-decoration: underline;
 }
 
+/* --- Sender Header Badge (IDE Chat Style) --- */
+.message-sender {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--vscode-descriptionForeground);
+}
+.message-sender .sender-icon {
+  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--vscode-badge-background, rgba(255, 255, 255, 0.08));
+  color: var(--vscode-badge-foreground, var(--vscode-foreground));
+}
+
+/* --- Collapsible Thought Accordion (IDE Chat Style) --- */
+.ide-thought-block {
+  margin: 6px 0 10px 0;
+  border: 1px solid var(--vscode-widget-border, rgba(255, 255, 255, 0.1));
+  border-radius: 4px;
+  background: var(--vscode-sideBar-background, var(--vscode-editor-background));
+  overflow: hidden;
+}
+
+.ide-thought-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--vscode-descriptionForeground);
+  cursor: pointer;
+  background: var(--vscode-editor-background);
+  user-select: none;
+  border-bottom: 1px solid transparent;
+  transition: background 0.15s ease;
+}
+.ide-thought-summary:hover {
+  background: var(--vscode-list-hoverBackground, rgba(255, 255, 255, 0.04));
+}
+.ide-thought-block[open] .ide-thought-summary {
+  border-bottom-color: var(--vscode-widget-border, rgba(255, 255, 255, 0.1));
+}
+
+.ide-thought-body {
+  padding: 8px 10px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--vscode-descriptionForeground);
+  background: var(--vscode-sideBar-background);
+}
+
+/* --- Code Block Action Bar (IDE Chat Style) --- */
+.code-block-wrapper {
+  margin: 8px 0;
+  border: 1px solid var(--vscode-widget-border, rgba(255, 255, 255, 0.1));
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--vscode-textCodeBlock-background, var(--vscode-editor-background));
+}
+
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  background: var(--vscode-editor-background);
+  border-bottom: 1px solid var(--vscode-widget-border, rgba(255, 255, 255, 0.08));
+}
+
+.code-lang {
+  font-size: 10px;
+  font-family: var(--vscode-editor-font-family, monospace);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--vscode-descriptionForeground);
+}
+
+.code-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.code-block-wrapper pre {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  padding: 8px 10px;
+  background: transparent;
+}
+
 /* --- Message Timestamp --- */
 .message-time {
   font-size: 10px;
