@@ -85,6 +85,38 @@
       vscode.postMessage({ type: 'setLanguage', lang: langSelect.value });
     });
   }
+
+  // --- Shortcut & Footer Model Dropdowns ---
+  var shortcutSelect = document.getElementById('shortcut-select');
+  var footerModelSelect = document.getElementById('footer-model-select');
+
+  if (shortcutSelect) {
+    shortcutSelect.addEventListener('change', function () {
+      var val = shortcutSelect.value;
+      if (val) {
+        messageInput.value = val;
+        sendMessage();
+        shortcutSelect.value = '';
+      }
+    });
+  }
+
+  if (footerModelSelect) {
+    footerModelSelect.addEventListener('change', function () {
+      var chosenModel = footerModelSelect.value;
+      if (modelSelect) {
+        modelSelect.value = chosenModel;
+      }
+      var provider = providerSelect ? providerSelect.value : 'groq';
+      var key = apiKeyInput ? apiKeyInput.value : '';
+      vscode.postMessage({
+        type: 'saveConfig',
+        provider: provider,
+        apiKey: key,
+        model: chosenModel
+      });
+    });
+  }
   var dictToggleBtn = document.getElementById('dict-toggle-btn');
   var dictModal = document.getElementById('dict-modal');
   var dictCloseBtn = document.getElementById('dict-close-btn');

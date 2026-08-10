@@ -842,7 +842,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
               <path d="M6 21V9a9 9 0 0 0 9 9"/>
             </svg>
           </span>
-          <h1>GitFlow Assistant <span class="version-badge">v8.6.0</span></h1>
+          <h1>Assistant <span class="version-badge">v8.7.0</span></h1>
         </div>
         <div class="header-actions">
           <button id="gear-toggle-btn" class="gear-btn" title="Pengaturan Provider, Model & API Key">
@@ -941,32 +941,41 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       </div>
     </div>
 
-    <!-- Quick Action Chips Bar -->
-    <div id="quick-chips" class="quick-chips">
-      <button class="chip-btn" data-cmd="/commit" title="Buat commit dari git diff">Tulis Commit</button>
-      <button class="chip-btn" data-cmd="/cmd" title="Rangkai perintah Git otomatis">Rangkai Cmd</button>
-      <button class="chip-btn" data-cmd="/score" title="Nilai kualitas commit">Skor Kualitas</button>
-      <button class="chip-btn" data-cmd="/scan" title="Pindai & pahami struktur seluruh berkas proyek">Pindai Proyek</button>
-      <button class="chip-btn" data-cmd="/notebook" title="Bersihkan metadata output Jupyter Notebook (.ipynb)">Bersihkan Notebook</button>
-      <button class="chip-btn" data-cmd="/dataset" title="Periksa berkas ukuran besar (>=50MB)">Cek File Besar</button>
-      <button class="chip-btn" data-cmd="/mlog" title="Catat eksperimen ML & hyperparameter">Catat Eksperimen</button>
-      <button class="chip-btn" data-cmd="/worktree" title="Buat meja uji coba terisolasi">Meja Uji Coba</button>
-      <button class="chip-btn" data-cmd="/pr" title="Buat ringkasan PR">Ringkas PR</button>
-      <button class="chip-btn" data-cmd="/compare" title="Bandingkan & audit branch">Cek Kesehatan</button>
-      <button class="chip-btn" data-cmd="/history" title="Cari riwayat commit">Cari Riwayat</button>
-      <button class="chip-btn" data-cmd="/info" title="Info baris kode aktif">Info Kode</button>
-      <button class="chip-btn" data-cmd="/tasks" title="Lihat checklist tugas">Daftar Tugas</button>
-      <button class="chip-btn" data-cmd="/report" title="Laporan aktivitas mingguan">Laporan Mingguan</button>
-      <button class="chip-btn" data-cmd="/resolve" title="Bantuan resolusi konflik">Atasi Konflik</button>
-      <button class="chip-btn" data-cmd="/help" title="Panduan pemula">Panduan Pemula</button>
-    </div>
-
-    <!-- Input area -->
+    <!-- Input area with Footer Controls Bar (Model & Shortcut Dropdowns) -->
     <div id="input-area" class="input-area">
-      <div class="input-wrapper">
-        <textarea id="message-input" placeholder="Tanya tentang alur Git, branch, atau minta bantuan prompt..." rows="1"></textarea>
-        <button id="send-button" title="Kirim">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <textarea id="message-input" placeholder="Tanya tentang alur Git, branch, atau pilih Perintah Pintas di bawah..." rows="1"></textarea>
+      
+      <div class="input-controls-bar">
+        <div class="controls-left">
+          <!-- Shortcut Menu Dropdown -->
+          <select id="shortcut-select" class="footer-select" title="Perintah Pintas (Shortcut Menu)">
+            <option value="">⚡ Perintah Pintas...</option>
+            <option value="/commit">✍️ Tulis Commit Message</option>
+            <option value="/cmd">🛠️ Rangkai Perintah Git</option>
+            <option value="/score">📊 Skor Kualitas Repositori</option>
+            <option value="/scan">🔍 Pindai Proyek</option>
+            <option value="/notebook">🧹 Bersihkan Notebook</option>
+            <option value="/dataset">📦 Cek File Besar (>=50MB)</option>
+            <option value="/mlog">📈 Catat Eksperimen ML</option>
+            <option value="/worktree">🌱 Meja Uji Coba (Worktree)</option>
+            <option value="/pr">🚀 Ringkas PR (Release Notes)</option>
+            <option value="/compare">🔀 Cek Kesehatan Branch</option>
+            <option value="/history">📜 Cari Riwayat Commit</option>
+            <option value="/info">ℹ️ Info Kode Aktif</option>
+            <option value="/tasks">✅ Daftar Tugas</option>
+            <option value="/report">📄 Laporan Mingguan</option>
+            <option value="/resolve">⚔️ Atasi Konflik Merge</option>
+            <option value="/help">❓ Panduan Pemula</option>
+          </select>
+
+          <!-- Model Selector Dropdown -->
+          <select id="footer-model-select" class="footer-select" title="Pilih Model AI">
+            ${modelOptions}
+          </select>
+        </div>
+
+        <button id="send-button" title="Kirim Pesan">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="22" y1="2" x2="11" y2="13"></line>
             <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
           </svg>
