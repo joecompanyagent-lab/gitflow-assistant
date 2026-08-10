@@ -1,28 +1,4 @@
-# === Build Output (Hasil kompilasi TypeScript) ===
-out/
-dist/
-*.js.map
-
-# === Dependencies (Paket dependensi — tidak perlu masuk arsip) ===
 node_modules/
-
-# === IDE & Editor ===
-.vscode-test/
+out/
 *.vsix
-
-# === OS Files ===
-.DS_Store
-Thumbs.db
-
-# === Environment (Rahasia — JANGAN sampai terunggah!) ===
 .env
-.env.local
-.env.*.local
-
-# === Logs ===
-*.log
-npm-debug.log*
-
-# === Temporary ===
-tmp/
-temp/

@@ -1,454 +1,430 @@
-// ══════════════════════════════════════════════════════════
-// GitFlow Assistant — Webview Chat Frontend
-// Logika UI: rendering bubble, input handling, postMessage
-// ══════════════════════════════════════════════════════════
+// GitFlow Assistant — Chat Webview Frontend
+// Multi-Provider Support, No Emoji, IDE-native
 
 (function () {
-    // @ts-ignore — vscode API tersedia di konteks Webview
-    const vscode = acquireVsCodeApi();
+  // @ts-ignore
+  const vscode = acquireVsCodeApi();
 
-    // ── State Management ──
-    const state = vscode.getState() || { messages: [], isWelcomeVisible: true };
+  // Provider data for dynamic UI updates
+  const PROVIDER_DATA = {
+    groq: {
+      models: [
+        'llama-3.3-70b-versatile',
+        'llama-3.1-8b-instant',
+        'deepseek-r1-distill-llama-70b',
+        'qwen-2.5-coder-32b-instruct',
+        'qwen-2.5-32b',
+        'gemma2-9b-it',
+        'mixtral-8x7b-32768',
+        'llama-3.2-11b-vision-instruct',
+        'llama-3.2-3b-preview',
+        'llama-3.2-1b-preview',
+        'custom'
+      ],
+      defaultModel: 'llama-3.3-70b-versatile',
+      keyPlaceholder: 'gsk_...',
+      consoleUrl: 'console.groq.com'
+    },
+    openai: {
+      models: ['gpt-4o', 'gpt-4o-mini', 'o1', 'o1-mini', 'gpt-4-turbo', 'gpt-3.5-turbo', 'custom'],
+      defaultModel: 'gpt-4o-mini',
+      keyPlaceholder: 'sk-...',
+      consoleUrl: 'platform.openai.com'
+    },
+    anthropic: {
+      models: ['claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022', 'claude-3-opus-20240229', 'custom'],
+      defaultModel: 'claude-3-7-sonnet-20250219',
+      keyPlaceholder: 'sk-ant-...',
+      consoleUrl: 'console.anthropic.com'
+    },
+    gemini: {
+      models: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash', 'custom'],
+      defaultModel: 'gemini-2.5-flash',
+      keyPlaceholder: 'AIza...',
+      consoleUrl: 'aistudio.google.com'
+    }
+  };
 
-    // ── DOM Elements ──
-    const chatMessages = document.getElementById('chat-messages');
-    const welcomeScreen = document.getElementById('welcome-screen');
-    const inputField = document.getElementById('input-field');
-    const sendBtn = document.getElementById('send-btn');
-    const typingIndicator = document.getElementById('typing-indicator');
-    const branchBadge = document.getElementById('branch-badge');
+  // DOM Elements
+  var chatMessages = document.getElementById('chat-messages');
+  var messageInput = document.getElementById('message-input');
+  var sendButton = document.getElementById('send-button');
+  var loadingIndicator = document.getElementById('loading-indicator');
+  var apiConfigSetup = document.getElementById('api-config-setup');
+  var providerSelect = document.getElementById('provider-select');
+  var apiKeyInput = document.getElementById('api-key-input');
+  var modelSelect = document.getElementById('model-select');
+  var configSubmit = document.getElementById('config-submit');
+  var consoleLink = document.getElementById('console-link');
+  var consoleHint = document.getElementById('console-hint');
+  var chatContainer = document.getElementById('chat-container');
+  var inputArea = document.getElementById('input-area');
+  var branchBadges = document.getElementById('branch-badges');
+  var personaSelect = document.getElementById('persona-select');
+  var langSelect = document.getElementById('lang-select');
+  var dictToggleBtn = document.getElementById('dict-toggle-btn');
 
-    // ══════════════════════════════════════════════════════════
-    // INITIALIZATION — Inisialisasi
-    // ══════════════════════════════════════════════════════════
+  // --- Language Switcher ---
+  if (langSelect) {
+    langSelect.addEventListener('change', function () {
+      vscode.postMessage({ type: 'setLanguage', lang: langSelect.value });
+    });
+  }
+  var dictToggleBtn = document.getElementById('dict-toggle-btn');
+  var dictModal = document.getElementById('dict-modal');
+  var dictCloseBtn = document.getElementById('dict-close-btn');
+  var dictSearch = document.getElementById('dict-search');
+  var dictList = document.getElementById('dict-list');
+  var quickChips = document.getElementById('quick-chips');
 
-    function init() {
-        // Pulihkan pesan sebelumnya jika ada
-        if (state.messages.length > 0) {
-            hideWelcome();
-            state.messages.forEach(function(msg) {
-                renderMessage(msg, false);
-            });
-            scrollToBottom();
+  // --- Kamus Awam Data (60+ istilah) ---
+  var GIT_DICTIONARY = [
+    { term: 'Commit', meaning: 'Foto snapshot keadaan proyek saat ini.', command: 'git commit -m "..."' },
+    { term: 'Branch', meaning: 'Meja kerja terpisah agar tidak mengganggu meja utama.', command: 'git branch / git checkout -b' },
+    { term: 'Push', meaning: 'Kirim paket hasil kerjaan dari komputer lokal ke server internet.', command: 'git push' },
+    { term: 'Pull', meaning: 'Ambil dan gabungkan paket perubahan terbaru dari server internet.', command: 'git pull' },
+    { term: 'Merge', meaning: 'Gabungkan hasil kerja dari satu branch meja kerja ke branch lain.', command: 'git merge' },
+    { term: 'Staging Area', meaning: 'Kotak kardus tempat mengumpulkan berkas sebelum disepakati foto snapshot (commit).', command: 'git add .' },
+    { term: 'Repository (Repo)', meaning: 'Buku diari / folder raksasa penyimpan seluruh sejarah perubahan proyek.', command: 'git init / git clone' },
+    { term: 'Clone', meaning: 'Duplikat / unduh seluruh isi buku diari proyek dari server internet ke komputer.', command: 'git clone' },
+    { term: 'Checkout', meaning: 'Berpindah duduk dari satu meja kerja (branch) ke meja kerja lain.', command: 'git checkout <branch>' },
+    { term: 'Fetch', meaning: 'Intip dan cek apakah ada paket perubahan baru di server tanpa langsung mengelompokkannya.', command: 'git fetch' },
+    { term: 'Revert', meaning: 'Buat foto snapshot baru yang isinya membatalkan foto snapshot lama.', command: 'git revert' },
+    { term: 'Reset', meaning: 'Putar balik mesin waktu ke masa lalu (hati-hati berkas bisa hilang).', command: 'git reset --hard' },
+    { term: 'Stash', meaning: 'Laci rahasia tempat menyembunyikan kerjaan setengah jadi saat mau pindah meja kerja.', command: 'git stash / git stash pop' },
+    { term: 'Conflict (Merge Conflict)', meaning: 'Bentrokan dua perubahan berbeda pada baris berkas yang sama yang harus dipilih manual.', command: 'Resolusi manual <<<<<<<' },
+    { term: 'Main Branch', meaning: 'Etalase toko rilis produk yang siap dipakai pengguna umum.', command: 'main' },
+    { term: 'Dev Branch', meaning: 'Dapur utama tempat mengumpulkan semua masakan fitur dari tim pengembang.', command: 'dev' },
+    { term: 'Staging Branch', meaning: 'Ruang Uji Coba QA sebelum produk dilepas ke etalase utama.', command: 'staging' },
+    { term: 'Feat Branch', meaning: 'Meja sketsa fitur baru yang sedang dirancang.', command: 'feat/nama-fitur' },
+    { term: 'Hotfix Branch', meaning: 'Tim Penambal Darurat untuk memperbaiki bug kritis di etalase utama.', command: 'hotfix/bug-kritis' }
+  ];
+
+  // Render Kamus List
+  function renderDictionary(filter) {
+    if (!dictList) return;
+    dictList.innerHTML = '';
+    var q = (filter || '').toLowerCase();
+    var filtered = GIT_DICTIONARY.filter(function (item) {
+      return item.term.toLowerCase().indexOf(q) !== -1 || item.meaning.toLowerCase().indexOf(q) !== -1;
+    });
+
+    if (filtered.length === 0) {
+      dictList.innerHTML = '<p class="dict-empty">Tidak ada istilah yang cocok dengan "' + filter + '"</p>';
+      return;
+    }
+
+    filtered.forEach(function (item) {
+      var div = document.createElement('div');
+      div.className = 'dict-item';
+      div.innerHTML = '<strong>' + item.term + '</strong><p>' + item.meaning + '</p><code>' + item.command + '</code>';
+      dictList.appendChild(div);
+    });
+  }
+
+  // Toggle Dictionary Drawer
+  if (dictToggleBtn && dictModal && dictCloseBtn) {
+    dictToggleBtn.addEventListener('click', function () {
+      renderDictionary('');
+      dictModal.classList.remove('hidden');
+    });
+    dictCloseBtn.addEventListener('click', function () {
+      dictModal.classList.add('hidden');
+    });
+    dictSearch.addEventListener('input', function () {
+      renderDictionary(dictSearch.value);
+    });
+  }
+
+  // --- Quick Action Chips Listener ---
+  if (quickChips) {
+    quickChips.addEventListener('click', function (e) {
+      var btn = e.target.closest('.chip-btn');
+      if (btn) {
+        var cmd = btn.getAttribute('data-cmd');
+        if (cmd) {
+          vscode.postMessage({ type: 'sendMessage', content: cmd });
         }
+      }
+    });
+  }
 
-        setupEventListeners();
+  // --- Persona Switcher ---
+  if (personaSelect) {
+    personaSelect.addEventListener('change', function () {
+      vscode.postMessage({ type: 'setPersona', persona: personaSelect.value });
+    });
+  }
 
-        // Beritahu extension bahwa webview sudah siap
-        vscode.postMessage({ type: 'webviewReady' });
+  var customModelField = document.getElementById('custom-model-field');
+  var customModelInput = document.getElementById('custom-model-input');
+
+  // --- Model Select Change ---
+  if (modelSelect) {
+    modelSelect.addEventListener('change', function () {
+      if (modelSelect.value === 'custom') {
+        if (customModelField) customModelField.classList.remove('hidden');
+      } else {
+        if (customModelField) customModelField.classList.add('hidden');
+      }
+    });
+  }
+
+  // --- Provider Dropdown Change ---
+  providerSelect.addEventListener('change', function () {
+    var provider = providerSelect.value;
+    var data = PROVIDER_DATA[provider];
+    if (!data) return;
+
+    modelSelect.innerHTML = '';
+    data.models.forEach(function (m) {
+      var opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m === 'custom' ? 'Custom (Input Manual...)' : m;
+      if (m === data.defaultModel) opt.selected = true;
+      modelSelect.appendChild(opt);
+    });
+
+    if (customModelField) customModelField.classList.add('hidden');
+
+    apiKeyInput.placeholder = data.keyPlaceholder;
+    apiKeyInput.value = '';
+
+    consoleLink.href = 'https://' + data.consoleUrl;
+    consoleLink.textContent = data.consoleUrl;
+  });
+
+  // --- Send Chat Message ---
+  function sendMessage() {
+    var content = messageInput.value.trim();
+    if (!content) return;
+    vscode.postMessage({ type: 'sendMessage', content: content });
+    messageInput.value = '';
+    messageInput.style.height = 'auto';
+  }
+
+  sendButton.addEventListener('click', sendMessage);
+
+  messageInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
     }
+  });
 
-    // ══════════════════════════════════════════════════════════
-    // EVENT LISTENERS — Pendengar Kejadian
-    // ══════════════════════════════════════════════════════════
+  messageInput.addEventListener('input', function () {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 110) + 'px';
+  });
 
-    function setupEventListeners() {
-        // Kirim pesan saat klik tombol
-        sendBtn.addEventListener('click', handleSend);
+  // --- Save Config ---
+  configSubmit.addEventListener('click', function () {
+    var key = apiKeyInput.value.trim();
+    var provider = providerSelect.value;
+    var model = modelSelect.value;
+    if (model === 'custom' && customModelInput) {
+      model = customModelInput.value.trim() || (PROVIDER_DATA[provider] ? PROVIDER_DATA[provider].defaultModel : 'llama-3.3-70b-versatile');
+    }
+    if (!key) {
+      showError('Silakan ketik atau tempel API Key Anda terlebih dahulu pada kolom API KEY.');
+      apiKeyInput.focus();
+      return;
+    }
+    configSubmit.textContent = 'Menyimpan...';
+    vscode.postMessage({
+      type: 'saveConfig',
+      apiKey: key,
+      provider: provider,
+      model: model
+    });
+  });
 
-        // Kirim pesan saat tekan Enter (tanpa Shift)
-        inputField.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-            }
-        });
+  apiKeyInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      configSubmit.click();
+    }
+  });
 
-        // Auto-resize textarea
-        inputField.addEventListener('input', function () {
-            autoResizeInput();
-            updateSendButton();
-        });
+  // --- Receive Messages from Extension ---
+  window.addEventListener('message', function (event) {
+    var data = event.data;
 
-        // Shortcut buttons di welcome screen
-        document.querySelectorAll('.shortcut-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                var text = btn.getAttribute('data-message');
-                if (text) {
-                    inputField.value = text;
-                    handleSend();
-                }
-            });
-        });
-
-        // Clear chat button
-        var btnClear = document.getElementById('btn-clear');
-        if (btnClear) {
-            btnClear.addEventListener('click', function () {
-                vscode.postMessage({ type: 'clearChat' });
-                clearChat();
-            });
+    switch (data.type) {
+      case 'receiveMessage':
+        appendMessage(data.message);
+        break;
+      case 'loadHistory':
+        chatMessages.innerHTML = '';
+        if (Array.isArray(data.history)) {
+          data.history.forEach(function (m) { appendMessage(m); });
         }
-
-        // Action buttons delegation (Tombol aksi interaktif)
-        chatMessages.addEventListener('click', function (e) {
-            var btn = e.target.closest('.action-btn');
-            if (btn) {
-                var action = btn.getAttribute('data-action');
-                var paramsRaw = btn.getAttribute('data-params');
-                var params = {};
-                try { params = JSON.parse(paramsRaw); } catch (err) {}
-
-                vscode.postMessage({
-                    type: 'actionClicked',
-                    action: action,
-                    params: params
-                });
-            }
-        });
-
-        // Terima pesan dari extension backend
-        window.addEventListener('message', handleExtensionMessage);
-    }
-
-    // ══════════════════════════════════════════════════════════
-    // MESSAGE HANDLING — Pengelolaan Pesan
-    // ══════════════════════════════════════════════════════════
-
-    function handleSend() {
-        var text = inputField.value.trim();
-        if (!text) return;
-
-        // Buat pesan user
-        var userMsg = {
-            id: generateId(),
-            role: 'user',
-            content: text,
-            timestamp: new Date().toISOString()
-        };
-
-        // Tampilkan dan simpan
-        hideWelcome();
-        renderMessage(userMsg, true);
-        saveMessage(userMsg);
-
-        // Reset input
-        inputField.value = '';
-        autoResizeInput();
-        updateSendButton();
-
-        // Tampilkan typing indicator
-        showTyping();
-
-        // Kirim ke extension backend
-        vscode.postMessage({
-            type: 'userMessage',
-            content: text
-        });
-    }
-
-    function handleExtensionMessage(event) {
-        var data = event.data;
-
-        switch (data.type) {
-            case 'assistantMessage':
-                hideTyping();
-                var assistantMsg = {
-                    id: generateId(),
-                    role: 'assistant',
-                    content: data.content,
-                    timestamp: new Date().toISOString(),
-                    outboundTag: data.outboundTag || null
-                };
-                hideWelcome();
-                renderMessage(assistantMsg, true);
-                saveMessage(assistantMsg);
-                break;
-
-            case 'outboundNotification':
-                hideTyping();
-                var outboundMsg = {
-                    id: generateId(),
-                    role: 'assistant',
-                    content: data.content,
-                    timestamp: new Date().toISOString(),
-                    outboundTag: data.tag
-                };
-                hideWelcome();
-                renderMessage(outboundMsg, true);
-                saveMessage(outboundMsg);
-                break;
-
-            case 'branchUpdate':
-                if (branchBadge) {
-                    branchBadge.textContent = '🌿 ' + data.branch;
-                }
-                break;
-
-            case 'clearChat':
-                clearChat();
-                break;
-
-            case 'showTyping':
-                showTyping();
-                break;
-
-            case 'hideTyping':
-                hideTyping();
-                break;
-
-            case 'streamUpdate':
-                hideTyping();
-                hideWelcome();
-                handleStreamUpdate(data.content, data.isComplete);
-                break;
+        break;
+      case 'branchUpdate':
+        updateBranchBadges(data.branchStatus);
+        updateVisualPipeline(data.branchStatus);
+        break;
+      case 'loading':
+        toggleLoading(data.isLoading);
+        break;
+      case 'error':
+        showError(data.error);
+        break;
+      case 'configStatus':
+        toggleConfigSetup(!data.hasApiKey);
+        break;
+      case 'personaUpdate':
+        if (personaSelect && data.persona) {
+          personaSelect.value = data.persona;
         }
+        break;
+    }
+  });
+
+  // --- Render Chat Message ---
+  function appendMessage(msg) {
+    if (!msg) return;
+    var wrapper = document.createElement('div');
+    wrapper.classList.add('message', msg.role);
+    var html = '';
+
+    if (msg.tag) {
+      var tagLabels = {
+        'OUTBOUND': 'OUTBOUND',
+        'BRANCH_MOVEMENT': 'BRANCH MOVEMENT',
+        'WARNING': 'WARNING',
+        'SUGGESTION': 'SUGGESTION',
+        'STRUCTURE': 'STRUCTURE',
+        'PROGRESS': 'PROGRESS',
+        'HEALTH_CHECK': 'HEALTH CHECK'
+      };
+      html += '<span class="message-tag tag-' + msg.tag + '">' + (tagLabels[msg.tag] || msg.tag) + '</span>';
     }
 
-    // ══════════════════════════════════════════════════════════
-    // STREAMING — Menampilkan Jawaban AI Secara Bertahap
-    // ══════════════════════════════════════════════════════════
+    html += '<div class="bubble"><div class="bubble-content">' + renderMarkdown(msg.content) + '</div></div>';
 
-    var _streamingBubbleId = null;
+    var time = new Date(msg.timestamp);
+    var timeStr = time.getHours().toString().padStart(2, '0') + ':' + time.getMinutes().toString().padStart(2, '0');
+    html += '<span class="message-time">' + timeStr + '</span>';
 
-    function handleStreamUpdate(content, isComplete) {
-        var existingEl = _streamingBubbleId
-            ? document.querySelector('[data-id="' + _streamingBubbleId + '"]')
-            : null;
+    wrapper.innerHTML = html;
 
-        if (!existingEl) {
-            // Buat bubble baru untuk streaming
-            _streamingBubbleId = generateId();
-            var msg = {
-                id: _streamingBubbleId,
-                role: 'assistant',
-                content: content,
-                timestamp: new Date().toISOString()
-            };
-            renderMessage(msg, true);
-        } else {
-            // Update konten bubble yang sudah ada
-            var bubbleEl = existingEl.querySelector('.bubble');
-            if (bubbleEl) {
-                bubbleEl.innerHTML = formatContent(content);
-            }
-            scrollToBottom();
-        }
+    // Attach 1-Click Copy Buttons to code blocks
+    var pres = wrapper.querySelectorAll('pre');
+    pres.forEach(function (pre) {
+      var copyBtn = document.createElement('button');
+      copyBtn.className = 'copy-code-btn';
+      copyBtn.textContent = 'Salin';
+      copyBtn.title = 'Salin Kode ke Clipboard';
+      copyBtn.addEventListener('click', function () {
+        var codeElem = pre.querySelector('code');
+        var text = codeElem ? codeElem.innerText : pre.innerText;
+        navigator.clipboard.writeText(text);
+        copyBtn.textContent = 'Tersalin!';
+        setTimeout(function () { copyBtn.textContent = 'Salin'; }, 2000);
+      });
+      pre.style.position = 'relative';
+      pre.appendChild(copyBtn);
+    });
 
-        if (isComplete) {
-            // Streaming selesai — simpan pesan final
-            var finalMsg = {
-                id: _streamingBubbleId,
-                role: 'assistant',
-                content: content,
-                timestamp: new Date().toISOString()
-            };
-            saveMessage(finalMsg);
-            _streamingBubbleId = null;
-        }
+    chatMessages.appendChild(wrapper);
+    scrollToBottom();
+  }
+
+  // --- Basic Markdown Renderer ---
+  function renderMarkdown(text) {
+    if (!text) return '';
+    var html = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    html = html.replace(/```([\s\S]*?)```/g, function (match, code) {
+      return '<pre><code>' + code.trim() + '</code></pre>';
+    });
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
+    html = html.replace(/^### (.+)$/gm, '<strong style="font-size:13px;">$1</strong>');
+    html = html.replace(/^## (.+)$/gm, '<strong style="font-size:14px;">$1</strong>');
+    html = html.replace(/^# (.+)$/gm, '<strong style="font-size:15px;">$1</strong>');
+    html = html.replace(/^[\s]*[-\u2022] (.+)$/gm, '  \u00b7 $1');
+    html = html.replace(/^(\d+)\. (.+)$/gm, '  $1. $2');
+    html = html.replace(/\n/g, '<br>');
+    return html;
+  }
+
+  // --- Update Branch Badges ---
+  function updateBranchBadges(status) {
+    if (!status) return;
+    var badges = branchBadges.querySelectorAll('.badge');
+    var currentType = status.currentType;
+    badges.forEach(function (badge) {
+      var type = badge.getAttribute('data-type');
+      badge.classList.remove('active');
+      if (type === currentType) badge.classList.add('active');
+    });
+    badges.forEach(function (badge) {
+      var type = badge.getAttribute('data-type');
+      if (type === currentType) {
+        var dot = badge.querySelector('.dot');
+        var dotHtml = dot ? dot.outerHTML : '';
+        badge.innerHTML = dotHtml + ' ' + status.current;
+      }
+    });
+  }
+
+  // --- Update Visual Pipeline Map ---
+  function updateVisualPipeline(status) {
+    if (!status) return;
+    var steps = document.querySelectorAll('.pipeline-step');
+    var type = status.currentType;
+    steps.forEach(function (s) {
+      s.classList.remove('active');
+      if (s.getAttribute('data-step') === type) {
+        s.classList.add('active');
+      }
+    });
+  }
+
+  function toggleLoading(show) {
+    if (show) {
+      loadingIndicator.classList.remove('hidden');
+      scrollToBottom();
+    } else {
+      loadingIndicator.classList.add('hidden');
     }
+  }
 
-    // ══════════════════════════════════════════════════════════
-    // RENDERING — Menampilkan Pesan di Layar
-    // ══════════════════════════════════════════════════════════
+  function showError(errorText) {
+    var errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = errorText;
+    chatMessages.appendChild(errorDiv);
+    scrollToBottom();
+    setTimeout(function () {
+      if (errorDiv.parentNode) errorDiv.parentNode.removeChild(errorDiv);
+    }, 8000);
+  }
 
-    function renderMessage(msg, animate) {
-        var messageEl = document.createElement('div');
-        messageEl.className = 'message ' + msg.role;
-        messageEl.setAttribute('data-id', msg.id);
-
-        if (!animate) {
-            messageEl.style.opacity = '1';
-            messageEl.style.animation = 'none';
-        }
-
-        var html = '';
-
-        // Tag outbound (untuk pesan AI)
-        if (msg.outboundTag) {
-            html += renderOutboundTag(msg.outboundTag);
-        }
-
-        // Bubble pesan
-        html += '<div class="bubble">' + formatContent(msg.content);
-
-        // Action buttons (jika ada)
-        if (msg.buttons && msg.buttons.length > 0) {
-            html += '<div class="message-actions">';
-            msg.buttons.forEach(function (btn) {
-                var icon = btn.icon ? btn.icon + ' ' : '';
-                html += '<button class="action-btn" data-action="' + btn.action + '" data-params="' + escapeHtml(JSON.stringify(btn.params || {})) + '">' +
-                        icon + escapeHtml(btn.label) +
-                        '</button>';
-            });
-            html += '</div>';
-        }
-
-        html += '</div>';
-
-        // Timestamp
-        html += '<div class="message-meta">';
-        html += '<span>' + formatTime(msg.timestamp) + '</span>';
-        html += '</div>';
-
-        messageEl.innerHTML = html;
-        chatMessages.appendChild(messageEl);
-
-        if (animate) {
-            scrollToBottom();
-        }
+  function toggleConfigSetup(show) {
+    if (configSubmit) configSubmit.textContent = 'Simpan';
+    if (show) {
+      apiConfigSetup.classList.remove('hidden');
+      chatContainer.classList.add('hidden');
+      inputArea.classList.add('hidden');
+      if (quickChips) quickChips.classList.add('hidden');
+    } else {
+      apiConfigSetup.classList.add('hidden');
+      chatContainer.classList.remove('hidden');
+      inputArea.classList.remove('hidden');
+      if (quickChips) quickChips.classList.remove('hidden');
     }
+  }
 
-    function renderOutboundTag(tag) {
-        var tagConfig = {
-            'OUTBOUND':         { emoji: '🔔', label: 'OUTBOUND',         css: 'tag-outbound' },
-            'BRANCH_MOVEMENT':  { emoji: '🚀', label: 'BRANCH MOVEMENT', css: 'tag-branch-movement' },
-            'WARNING':          { emoji: '⚠️', label: 'WARNING',          css: 'tag-warning' },
-            'SUGGESTION':       { emoji: '💡', label: 'SUGGESTION',       css: 'tag-suggestion' },
-            'STRUCTURE':        { emoji: '📁', label: 'STRUCTURE',        css: 'tag-structure' },
-            'PROGRESS':         { emoji: '📊', label: 'PROGRESS',         css: 'tag-progress' }
-        };
+  function scrollToBottom() {
+    requestAnimationFrame(function () {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+  }
 
-        var config = tagConfig[tag] || tagConfig['OUTBOUND'];
-        return '<div class="outbound-tag ' + config.css + '">' +
-               config.emoji + ' ' + config.label +
-               '</div>';
-    }
-
-    // ══════════════════════════════════════════════════════════
-    // CONTENT FORMATTING — Format Konten Pesan
-    // ══════════════════════════════════════════════════════════
-
-    function formatContent(text) {
-        if (!text) return '';
-
-        var html = escapeHtml(text);
-
-        // Code blocks (``` ... ```)
-        html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, function (_, lang, code) {
-            return '<pre><code class="lang-' + lang + '">' + code.trim() + '</code></pre>';
-        });
-
-        // Inline code (` ... `)
-        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-        // Bold (**text**)
-        html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-
-        // Italic (*text*)
-        html = html.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
-
-        // Blockquote (> text)
-        html = html.replace(/^&gt;\s?(.+)$/gm, '<blockquote>$1</blockquote>');
-
-        // Unordered list (- item)
-        html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
-        html = html.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>');
-        // Clean up nested ul tags
-        html = html.replace(/<\/ul>\s*<ul>/g, '');
-
-        // Line breaks
-        html = html.replace(/\n/g, '<br>');
-
-        // Clean up double br after block elements
-        html = html.replace(/<\/(pre|blockquote|ul|ol)><br>/g, '</$1>');
-        html = html.replace(/<br><(pre|blockquote|ul|ol)/g, '<$1');
-
-        return html;
-    }
-
-    function escapeHtml(text) {
-        var div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    // ══════════════════════════════════════════════════════════
-    // UI HELPERS — Fungsi Bantu Tampilan
-    // ══════════════════════════════════════════════════════════
-
-    function showTyping() {
-        if (typingIndicator) {
-            typingIndicator.classList.add('visible');
-            scrollToBottom();
-        }
-    }
-
-    function hideTyping() {
-        if (typingIndicator) {
-            typingIndicator.classList.remove('visible');
-        }
-    }
-
-    function hideWelcome() {
-        if (welcomeScreen) {
-            welcomeScreen.style.display = 'none';
-            state.isWelcomeVisible = false;
-        }
-    }
-
-    function showWelcome() {
-        if (welcomeScreen) {
-            welcomeScreen.style.display = 'flex';
-            state.isWelcomeVisible = true;
-        }
-    }
-
-    function clearChat() {
-        if (chatMessages) {
-            chatMessages.innerHTML = '';
-        }
-        state.messages = [];
-        vscode.setState(state);
-        showWelcome();
-        chatMessages.appendChild(welcomeScreen);
-        chatMessages.appendChild(typingIndicator);
-    }
-
-    function scrollToBottom() {
-        if (chatMessages) {
-            requestAnimationFrame(function () {
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            });
-        }
-    }
-
-    function autoResizeInput() {
-        if (inputField) {
-            inputField.style.height = 'auto';
-            inputField.style.height = Math.min(inputField.scrollHeight, 120) + 'px';
-        }
-    }
-
-    function updateSendButton() {
-        if (sendBtn && inputField) {
-            sendBtn.disabled = inputField.value.trim().length === 0;
-        }
-    }
-
-    // ══════════════════════════════════════════════════════════
-    // STATE PERSISTENCE — Penyimpanan Status
-    // ══════════════════════════════════════════════════════════
-
-    function saveMessage(msg) {
-        state.messages.push(msg);
-        // Batasi riwayat pesan agar tidak membengkak
-        if (state.messages.length > 200) {
-            state.messages = state.messages.slice(-150);
-        }
-        vscode.setState(state);
-    }
-
-    // ══════════════════════════════════════════════════════════
-    // UTILITIES — Fungsi Bantu Umum
-    // ══════════════════════════════════════════════════════════
-
-    function generateId() {
-        return 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
-    }
-
-    function formatTime(isoString) {
-        try {
-            var date = new Date(isoString);
-            return date.toLocaleTimeString('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        } catch (e) {
-            return '';
-        }
-    }
-
-    // ── Mulai! ──
-    init();
+  vscode.postMessage({ type: 'ready' });
 })();

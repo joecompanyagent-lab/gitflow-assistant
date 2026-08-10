@@ -1,20 +1,9 @@
-# === File yang TIDAK masuk paket .vsix ===
-# (Agar ukuran ekstensi tetap kecil saat di-publish)
-
 .vscode/**
-.vscode-test/**
-src/**
-test/**
-out/test/**
 node_modules/**
-
-# Config files
+src/**
 .gitignore
 tsconfig.json
-.eslintrc*
-**/*.map
 **/*.ts
-
-# Documentation (opsional — bisa dimasukkan jika mau)
-# CHANGELOG.md
-# README.md
+**/*.map
+.git/**
+test/**
