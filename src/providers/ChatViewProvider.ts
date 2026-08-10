@@ -819,7 +819,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
               <path d="M6 21V9a9 9 0 0 0 9 9"/>
             </svg>
           </span>
-          <h1>GitFlow Assistant <span class="version-badge">v8.4.1</span></h1>
+          <h1>GitFlow Assistant <span class="version-badge">v8.5.0</span></h1>
         </div>
         <div class="header-actions">
           <button id="gear-toggle-btn" class="gear-btn" title="Pengaturan Provider, Model & API Key">
@@ -913,8 +913,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     <div id="chat-container" class="chat-container">
       <div id="chat-messages" class="chat-messages"></div>
       <div id="loading-indicator" class="loading-indicator hidden">
-        <div class="typing-dots"><span></span><span></span><span></span></div>
-        <span class="loading-text">GitFlow Assistant sedang mengetik...</span>
+        <span class="spinner-icon"></span>
+        <span class="loading-text">GitFlow Assistant sedang memproses & menganalisis alur...</span>
       </div>
     </div>
 
