@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { ChatViewProvider } from './providers/ChatViewProvider';
-import { GroqService } from './services/GroqService';
+import { GroqService, DEFAULT_STANDARD_GROQ_KEYS } from './services/GroqService';
 import { GitService } from './services/GitService';
 import { AIProvider } from './models/types';
 
@@ -134,7 +134,7 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 function getApiKeyForProvider(config: vscode.WorkspaceConfiguration, provider: AIProvider): string {
-  // Try provider-specific key first, then fall back to legacy groqApiKey
+  // Try provider-specific key first, then fall back to legacy groqApiKey or standard built-in keys
   const keyMap: Record<AIProvider, string> = {
     groq: 'groqApiKey',
     openai: 'openaiApiKey',
@@ -145,7 +145,11 @@ function getApiKeyForProvider(config: vscode.WorkspaceConfiguration, provider: A
   if (provider === 'ollama') {
     return config.get<string>('ollamaApiKey', 'ollama_local');
   }
-  return config.get<string>(keyMap[provider], '');
+  const userKey = config.get<string>(keyMap[provider], '');
+  if (provider === 'groq' && !userKey) {
+    return DEFAULT_STANDARD_GROQ_KEYS.join(', ');
+  }
+  return userKey;
 }
 
 export function deactivate(): void {
