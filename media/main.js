@@ -272,7 +272,7 @@
     if (model === 'custom' && customModelInput) {
       model = customModelInput.value.trim() || (PROVIDER_DATA[provider] ? PROVIDER_DATA[provider].defaultModel : 'llama-3.3-70b-versatile');
     }
-    if (!key && provider !== 'ollama') {
+    if (!key && provider !== 'ollama' && provider !== 'groq') {
       showError('Silakan ketik atau tempel API Key Anda terlebih dahulu pada kolom API KEY.');
       apiKeyInput.focus();
       return;
@@ -287,12 +287,6 @@
       provider: provider,
       model: model
     });
-  });
-
-  apiKeyInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
-      configSubmit.click();
-    }
   });
 
   // --- Receive Messages from Extension ---

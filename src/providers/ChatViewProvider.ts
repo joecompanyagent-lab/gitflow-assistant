@@ -106,7 +106,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
           }
           break;
         case 'saveConfig':
-          if (message.provider && message.apiKey) {
+          if (message.provider) {
             const provider = message.provider as AIProvider;
             const model = message.model || '';
             const config = vscode.workspace.getConfiguration('gitflowAssistant');
@@ -118,7 +118,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
               gemini: 'geminiApiKey',
               ollama: 'ollamaApiKey'
             };
-            if (keyMap[provider]) {
+            if (keyMap[provider] && message.apiKey) {
               await config.update(keyMap[provider], message.apiKey, vscode.ConfigurationTarget.Global);
             }
             await config.update('provider', provider, vscode.ConfigurationTarget.Global);
@@ -127,7 +127,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             }
 
             this.groqService.setProvider(provider);
-            this.groqService.setApiKey(message.apiKey);
+            this.groqService.setApiKey(message.apiKey || '');
             if (model) {
               this.groqService.setModel(model);
             }
@@ -842,7 +842,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
               <path d="M6 21V9a9 9 0 0 0 9 9"/>
             </svg>
           </span>
-          <h1>Assistant <span class="version-badge">v8.9.0</span></h1>
+          <h1>Assistant <span class="version-badge">v8.9.1</span></h1>
         </div>
         <div class="header-actions">
           <button id="gear-toggle-btn" class="gear-btn" title="Pengaturan Provider, Model & API Key">
@@ -910,8 +910,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         </div>
 
         <div class="setup-field">
-          <label for="api-key-input">API Key</label>
-          <input type="password" id="api-key-input" placeholder="${defaultProvider.keyPlaceholder}" />
+          <label for="api-key-input">API Key <small style="opacity:0.5">(opsional, sudah ada key bawaan)</small></label>
+          <textarea id="api-key-input" rows="3" placeholder="${defaultProvider.keyPlaceholder}" style="resize:vertical;font-family:var(--vscode-editor-font-family,monospace);font-size:11px;"></textarea>
         </div>
 
         <div class="setup-field">
