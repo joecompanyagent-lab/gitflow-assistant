@@ -487,21 +487,22 @@ body {
 
 /* --- AI / Outbound Bubble (LEFT) --- */
 .message.assistant,
+.message.assistant,
 .message.outbound {
   align-self: flex-start;
+  width: 100%;
+  margin: 10px 0;
 }
 
 .message.assistant .bubble,
 .message.outbound .bubble {
-  background: var(--vscode-editor-background);
-  border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border, transparent));
-  border-radius: 2px 6px 6px 6px;
-  padding: 10px 12px;
-  color: var(--vscode-foreground);
-}
-
-.message.outbound .bubble {
-  border-left: 2px solid var(--vscode-textLink-foreground, #58a6ff);
+  background: transparent;
+  border: none;
+  border-left: none;
+  border-radius: 0;
+  padding: 0;
+  color: var(--vscode-foreground, #e4e4e7);
+  box-shadow: none;
 }
 
 /* --- User Bubble (Matching IDE Chat Prompt Card) --- */
@@ -527,19 +528,9 @@ body {
   font-weight: 700;
 }
 
-/* --- Message Tag --- */
+/* --- Message Tag (Hidden to match Native IDE Chat UI) --- */
 .message-tag {
-  display: inline-flex;
-  align-items: center;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  padding: 1px 6px;
-  border-radius: 2px;
-  margin-bottom: 5px;
-  width: fit-content;
-  font-family: var(--vscode-editor-font-family, monospace);
+  display: none;
 }
 
 .tag-OUTBOUND {

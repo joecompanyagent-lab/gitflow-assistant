@@ -382,7 +382,7 @@
     html = html.replace(/^### (.+)$/gm, '<strong style="font-size:13px;">$1</strong>');
     html = html.replace(/^## (.+)$/gm, '<strong style="font-size:14px;">$1</strong>');
     html = html.replace(/^# (.+)$/gm, '<strong style="font-size:15px;">$1</strong>');
-    html = html.replace(/^[\s]*[-\u2022] (.+)$/gm, '  \u00b7 $1');
+    html = html.replace(/^[\s]*[-\*\u2022] (.+)$/gm, '  • $1');
     html = html.replace(/^(\d+)\. (.+)$/gm, '  $1. $2');
     html = html.replace(/\n/g, '<br>');
     return html;
