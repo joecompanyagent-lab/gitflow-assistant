@@ -83,7 +83,7 @@ export interface ConflictBlock {
 }
 
 export interface WebviewMessage {
-  type: 'sendMessage' | 'saveConfig' | 'ready' | 'setPersona' | 'toggleTask' | 'clearHistory' | 'setLanguage';
+  type: 'sendMessage' | 'saveConfig' | 'ready' | 'setPersona' | 'toggleTask' | 'clearHistory' | 'setLanguage' | 'runInTerminal' | 'applyToEditor';
   content?: string;
   apiKey?: string;
   provider?: AIProvider;

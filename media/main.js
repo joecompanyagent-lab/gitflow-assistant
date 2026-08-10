@@ -305,23 +305,6 @@
     wrapper.classList.add('message', msg.role);
     var html = '';
 
-    // IDE Chat Sender Header Badge
-    var senderName = msg.role === 'user' ? 'Anda' : 'GitFlow Assistant';
-    html += '<div class="message-sender"><span class="sender-icon">' + (msg.role === 'user' ? 'USER' : 'AI') + '</span> ' + senderName + '</div>';
-
-    if (msg.tag) {
-      var tagLabels = {
-        'OUTBOUND': 'OUTBOUND',
-        'BRANCH_MOVEMENT': 'BRANCH MOVEMENT',
-        'WARNING': 'WARNING',
-        'SUGGESTION': 'SUGGESTION',
-        'STRUCTURE': 'STRUCTURE',
-        'PROGRESS': 'PROGRESS',
-        'HEALTH_CHECK': 'HEALTH CHECK'
-      };
-      html += '<span class="message-tag tag-' + msg.tag + '">' + (tagLabels[msg.tag] || msg.tag) + '</span>';
-    }
-
     html += '<div class="bubble"><div class="bubble-content">' + renderMarkdown(msg.content) + '</div></div>';
 
     var time = new Date(msg.timestamp);
@@ -330,17 +313,34 @@
 
     wrapper.innerHTML = html;
 
-    // Attach 1-Click Copy Buttons to code block action bars
+    // Attach 1-Click Code Action Handlers
     var wrappers = wrapper.querySelectorAll('.code-block-wrapper');
     wrappers.forEach(function (blockWrap) {
       var copyBtn = blockWrap.querySelector('.copy-code-btn');
+      var termBtn = blockWrap.querySelector('.exec-term-btn');
+      var applyBtn = blockWrap.querySelector('.apply-file-btn');
+      var codeElem = blockWrap.querySelector('code');
+      var text = codeElem ? codeElem.innerText : blockWrap.innerText;
+
       if (copyBtn) {
         copyBtn.addEventListener('click', function () {
-          var codeElem = blockWrap.querySelector('code');
-          var text = codeElem ? codeElem.innerText : blockWrap.innerText;
           navigator.clipboard.writeText(text);
           copyBtn.textContent = 'Tersalin!';
           setTimeout(function () { copyBtn.textContent = 'Salin'; }, 2000);
+        });
+      }
+      if (termBtn) {
+        termBtn.addEventListener('click', function () {
+          vscode.postMessage({ type: 'runInTerminal', command: text });
+          termBtn.textContent = 'Mengeksekusi...';
+          setTimeout(function () { termBtn.textContent = 'Jalankan di Terminal'; }, 2000);
+        });
+      }
+      if (applyBtn) {
+        applyBtn.addEventListener('click', function () {
+          vscode.postMessage({ type: 'applyToEditor', code: text });
+          applyBtn.textContent = 'Diterapkan!';
+          setTimeout(function () { applyBtn.textContent = 'Terapkan ke Berkas'; }, 2000);
         });
       }
     });
@@ -360,9 +360,17 @@
     // Fenced Code Blocks with Language Header & Action Bar
     html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, function (match, lang, code) {
       var langName = lang ? lang.toUpperCase() : 'CODE';
+      var isBash = ['BASH', 'SH', 'CMD', 'SHELL', 'GIT', 'TEXT'].indexOf(langName) !== -1;
+      var actions = '<div class="code-actions">';
+      if (isBash) {
+        actions += '<button class="exec-term-btn" title="Jalankan di Terminal VS Code">Jalankan di Terminal</button>';
+      } else {
+        actions += '<button class="apply-file-btn" title="Terapkan ke Berkas Aktif">Terapkan ke Berkas</button>';
+      }
+      actions += '<button class="copy-code-btn" title="Salin Kode">Salin</button></div>';
+
       return '<div class="code-block-wrapper">' +
-        '<div class="code-header"><span class="code-lang">' + langName + '</span>' +
-        '<div class="code-actions"><button class="copy-code-btn" title="Salin Kode">Salin</button></div></div>' +
+        '<div class="code-header"><span class="code-lang">' + langName + '</span>' + actions + '</div>' +
         '<pre><code>' + code.trim() + '</code></pre>' +
         '</div>';
     });

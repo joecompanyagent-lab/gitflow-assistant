@@ -75,6 +75,36 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             this.postMessage({ type: 'languageUpdate', lang: message.lang });
           }
           break;
+        case 'runInTerminal':
+          if (message.content || (message as any).command) {
+            const cmd = message.content || (message as any).command;
+            let terminal = vscode.window.activeTerminal;
+            if (!terminal) {
+              terminal = vscode.window.createTerminal('GitFlow Terminal');
+            }
+            terminal.show(true);
+            terminal.sendText(cmd);
+          }
+          break;
+        case 'applyToEditor':
+          if (message.content || (message as any).code) {
+            const code = message.content || (message as any).code;
+            const editor = vscode.window.activeTextEditor;
+            if (editor) {
+              editor.edit(editBuilder => {
+                const selection = editor.selection;
+                if (!selection.isEmpty) {
+                  editBuilder.replace(selection, code);
+                } else {
+                  editBuilder.insert(selection.active, code);
+                }
+              });
+              vscode.window.showInformationMessage('Hasil rekomendasi AI berhasil diterapkan ke editor!');
+            } else {
+              vscode.window.showWarningMessage('Silakan buka berkas target di editor terlebih dahulu.');
+            }
+          }
+          break;
         case 'saveConfig':
           if (message.provider && message.apiKey) {
             const provider = message.provider as AIProvider;
@@ -812,7 +842,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
               <path d="M6 21V9a9 9 0 0 0 9 9"/>
             </svg>
           </span>
-          <h1>GitFlow Assistant <span class="version-badge">v8.5.1</span></h1>
+          <h1>GitFlow Assistant <span class="version-badge">v8.6.0</span></h1>
         </div>
         <div class="header-actions">
           <button id="gear-toggle-btn" class="gear-btn" title="Pengaturan Provider, Model & API Key">
