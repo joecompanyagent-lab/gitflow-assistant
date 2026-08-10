@@ -416,12 +416,20 @@
 
     html = renderMarkdownTables(html);
 
+    // Strip bracket tags like [OUTBOUND] or convert [STATUS BRANCH] to Title Case without punctuation
+    html = html.replace(/\[(OUTBOUND|BRANCH MOVEMENT|WARNING|SUGGESTION|STRUCTURE|PROGRESS|HEALTH CHECK|CONFLICT|COMMAND)\]:?\s*/gi, '');
+    html = html.replace(/\[([A-Z0-9_\s]{2,30})\]:?\s*/g, function (match, tag) {
+      var titleCase = tag.toLowerCase().replace(/\b\w/g, function (l) { return l.toUpperCase(); });
+      return '<div class="section-title">' + titleCase + '</div>';
+    });
+
     html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
     html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     html = html.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
-    html = html.replace(/^### (.+)$/gm, '<strong style="font-size:13px;">$1</strong>');
-    html = html.replace(/^## (.+)$/gm, '<strong style="font-size:14px;">$1</strong>');
-    html = html.replace(/^# (.+)$/gm, '<strong style="font-size:15px;">$1</strong>');
+    html = html.replace(/^#{1,3}\s+(.+)$/gm, function (match, title) {
+      var cleanTitle = title.replace(/^\[|\]$/g, '').toLowerCase().replace(/\b\w/g, function (l) { return l.toUpperCase(); });
+      return '<div class="section-title">' + cleanTitle + '</div>';
+    });
     html = html.replace(/^[\s]*[-\*\u2022] (.+)$/gm, '  • $1');
     html = html.replace(/^(\d+)\. (.+)$/gm, '  $1. $2');
     html = html.replace(/\n/g, '<br>');
