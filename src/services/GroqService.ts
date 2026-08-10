@@ -942,8 +942,8 @@ Analisis struktur repositori ini dalam bahasa awam (TANPA EMOJI, gunakan penanda
       } catch (err) {
         lastError = err as Error;
         const errStr = lastError.message || '';
-        if ((errStr.includes('429') || errStr.includes('BATAS KUOTA')) && i < keys.length - 1) {
-          console.log(`[Multi-Key Rotation] Key #${i + 1} (${activeKey.substring(0, 8)}...) terkena rate limit. Mengalihkan otomatis ke Key #${i + 2}...`);
+        if ((errStr.includes('429') || errStr.includes('401') || errStr.includes('BATAS KUOTA') || errStr.includes('Invalid API Key')) && i < keys.length - 1) {
+          console.log(`[Multi-Key Rotation] Key #${i + 1} (${activeKey.substring(0, 8)}...) bermasalah (${errStr}). Mengalihkan otomatis ke Key #${i + 2}...`);
           continue;
         }
         throw lastError;
@@ -1072,7 +1072,7 @@ Analisis struktur repositori ini dalam bahasa awam (TANPA EMOJI, gunakan penanda
       } catch (err) {
         lastError = err as Error;
         const errStr = lastError.message || '';
-        if ((errStr.includes('429') || errStr.includes('BATAS KUOTA')) && i < keys.length - 1) {
+        if ((errStr.includes('429') || errStr.includes('401') || errStr.includes('BATAS KUOTA') || errStr.includes('Invalid API Key')) && i < keys.length - 1) {
           continue;
         }
         throw lastError;
