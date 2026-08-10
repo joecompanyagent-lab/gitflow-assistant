@@ -29,7 +29,7 @@ body {
 
 /* --- Header --- */
 #header {
-  padding: 10px 12px 8px;
+  padding: 8px 10px 6px;
   background: var(--vscode-sideBarSectionHeader-background, var(--vscode-sideBar-background));
   border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
   flex-shrink: 0;
@@ -39,31 +39,71 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 6px;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  flex-wrap: nowrap;
 }
 
 .header-title {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+  min-width: 0;
+  flex-shrink: 1;
+  white-space: nowrap;
+}
+
+.header-title h1 {
+  font-size: 11px;
+  font-weight: 700;
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  line-height: 1;
 }
 
 .version-badge {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   padding: 1px 5px;
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--vscode-badge-background, #007acc);
   color: var(--vscode-badge-foreground, #ffffff);
-  margin-left: 4px;
-  vertical-align: middle;
+  flex-shrink: 0;
+  white-space: nowrap;
+  line-height: 1.2;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.gear-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--vscode-button-border, transparent);
+  background: var(--vscode-button-secondaryBackground, var(--vscode-button-background));
+  color: var(--vscode-button-secondaryForeground, var(--vscode-button-foreground));
+  cursor: pointer;
+  line-height: 1;
+}
+.gear-btn:hover {
+  background: var(--vscode-button-hoverBackground, #005fb8);
+  color: #ffffff;
 }
 
 .lang-select {

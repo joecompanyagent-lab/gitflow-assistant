@@ -70,6 +70,15 @@
   var langSelect = document.getElementById('lang-select');
   var dictToggleBtn = document.getElementById('dict-toggle-btn');
 
+  var gearToggleBtn = document.getElementById('gear-toggle-btn');
+
+  // --- Gear Button Settings Toggle ---
+  if (gearToggleBtn) {
+    gearToggleBtn.addEventListener('click', function () {
+      apiConfigSetup.classList.toggle('hidden');
+    });
+  }
+
   // --- Language Switcher ---
   if (langSelect) {
     langSelect.addEventListener('change', function () {
