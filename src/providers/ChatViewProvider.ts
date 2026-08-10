@@ -165,8 +165,10 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       anthropic: 'anthropicApiKey',
       gemini: 'geminiApiKey'
     };
-    const apiKey = config.get<string>(keyMap[provider], '');
-    this.postMessage({ type: 'configStatus', hasApiKey: !!apiKey, provider, model: this.groqService.getModel() });
+    const userApiKey = config.get<string>(keyMap[provider], '');
+    // Groq always has built-in keys, so hasApiKey = true for Groq even if user didn't provide one
+    const hasApiKey = provider === 'groq' ? true : !!userApiKey;
+    this.postMessage({ type: 'configStatus', hasApiKey, provider, model: this.groqService.getModel() });
     this.postMessage({ type: 'personaUpdate', persona: this.groqService.getPersona() });
 
     const branchStatus = await this.gitService.getBranchStatus();
@@ -174,8 +176,10 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       this.postMessage({ type: 'branchUpdate', branchStatus });
     }
 
-    if (apiKey) {
-      this.groqService.setApiKey(apiKey);
+    if (hasApiKey) {
+      if (userApiKey) {
+        this.groqService.setApiKey(userApiKey);
+      }
       this.groqService.setProvider(provider);
       const model = config.get<string>('model', '');
       if (model) {
@@ -842,7 +846,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
               <path d="M6 21V9a9 9 0 0 0 9 9"/>
             </svg>
           </span>
-          <h1>Assistant <span class="version-badge">v8.9.1</span></h1>
+          <h1>Assistant <span class="version-badge">v8.9.2</span></h1>
         </div>
         <div class="header-actions">
           <button id="gear-toggle-btn" class="gear-btn" title="Pengaturan Provider, Model & API Key">

@@ -408,7 +408,7 @@ export class GroqService {
   }
 
   public async chat(userMessage: string, branchContext?: string, editorContext?: EditorContext): Promise<string> {
-    if (!this.apiKey) {
+    if (!this.apiKey && this.provider !== 'groq') {
       throw new Error('API Key belum diatur. Silakan atur di panel konfigurasi.');
     }
 
