@@ -21,7 +21,7 @@ export const PROVIDERS: Record<AIProvider, ProviderInfo> = {
       'custom'
     ],
     defaultModel: 'llama-3.3-70b-versatile',
-    keyPlaceholder: 'gsk_...',
+    keyPlaceholder: 'gsk_key1, gsk_key2 (bisa beberapa API Key dipisahkan koma)',
     consoleUrl: 'console.groq.com'
   },
   openai: {
@@ -887,8 +887,21 @@ Analisis struktur repositori ini dalam bahasa awam (TANPA EMOJI, gunakan penanda
     });
   }
 
-  // --- OpenAI-Compatible API (Groq, OpenAI) ---
-  private callOpenAICompatibleApi(systemPrompt: string, messages: AIMessage[]): Promise<string> {
+  private getApiKeysList(): string[] {
+    if (!this.apiKey) return [];
+    return this.apiKey
+      .split(/[\n,;\s]+/)
+      .map(k => k.trim())
+      .filter(k => k.length > 0);
+  }
+
+  // --- OpenAI-Compatible API (Groq, OpenAI) with Multi-Key Rotation ---
+  private async callOpenAICompatibleApi(systemPrompt: string, messages: AIMessage[]): Promise<string> {
+    const keys = this.getApiKeysList();
+    if (keys.length === 0) {
+      throw new Error('API Key belum diatur. Silakan masukkan di panel konfigurasi ⚙️.');
+    }
+
     const providerInfo = PROVIDERS[this.provider];
     const allMessages = [{ role: 'system', content: systemPrompt }, ...messages];
 
@@ -901,28 +914,52 @@ Analisis struktur repositori ini dalam bahasa awam (TANPA EMOJI, gunakan penanda
       stream: false
     });
 
-    return new Promise((resolve, reject) => {
-      const options: https.RequestOptions = {
-        hostname: providerInfo.hostname,
-        port: 443,
-        path: providerInfo.path,
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Length': Buffer.byteLength(payload)
-        }
-      };
+    let lastError: Error | null = null;
 
-      this.makeRequest(options, payload, (data) => {
-        const parsed = JSON.parse(data) as GroqResponse;
-        return parsed.choices[0]?.message?.content || 'Maaf, saya tidak dapat merespon saat ini.';
-      }).then(resolve).catch(reject);
-    });
+    for (let i = 0; i < keys.length; i++) {
+      const activeKey = keys[i];
+      try {
+        const result = await new Promise<string>((resolve, reject) => {
+          const options: https.RequestOptions = {
+            hostname: providerInfo.hostname,
+            port: 443,
+            path: providerInfo.path,
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${activeKey}`,
+              'Content-Length': Buffer.byteLength(payload)
+            }
+          };
+
+          this.makeRequest(options, payload, (data) => {
+            const parsed = JSON.parse(data) as GroqResponse;
+            return parsed.choices[0]?.message?.content || 'Maaf, saya tidak dapat merespon saat ini.';
+          }).then(resolve).catch(reject);
+        });
+
+        return result;
+      } catch (err) {
+        lastError = err as Error;
+        const errStr = lastError.message || '';
+        if ((errStr.includes('429') || errStr.includes('BATAS KUOTA')) && i < keys.length - 1) {
+          console.log(`[Multi-Key Rotation] Key #${i + 1} (${activeKey.substring(0, 8)}...) terkena rate limit. Mengalihkan otomatis ke Key #${i + 2}...`);
+          continue;
+        }
+        throw lastError;
+      }
+    }
+
+    throw lastError || new Error('Gagal mengeksekusi permintaan.');
   }
 
-  // --- Anthropic API (Claude) ---
-  private callAnthropicApi(systemPrompt: string, messages: AIMessage[]): Promise<string> {
+  // --- Anthropic API (Claude) with Multi-Key Rotation ---
+  private async callAnthropicApi(systemPrompt: string, messages: AIMessage[]): Promise<string> {
+    const keys = this.getApiKeysList();
+    if (keys.length === 0) {
+      throw new Error('API Key belum diatur.');
+    }
+
     const anthropicMessages = messages.map(m => ({
       role: m.role === 'system' ? 'user' : m.role,
       content: m.content
@@ -935,33 +972,56 @@ Analisis struktur repositori ini dalam bahasa awam (TANPA EMOJI, gunakan penanda
       messages: anthropicMessages
     });
 
-    return new Promise((resolve, reject) => {
-      const options: https.RequestOptions = {
-        hostname: 'api.anthropic.com',
-        port: 443,
-        path: '/v1/messages',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.apiKey,
-          'anthropic-version': '2023-06-01',
-          'Content-Length': Buffer.byteLength(payload)
-        }
-      };
+    let lastError: Error | null = null;
 
-      this.makeRequest(options, payload, (data) => {
-        const parsed = JSON.parse(data);
-        const content = parsed.content;
-        if (Array.isArray(content) && content.length > 0) {
-          return content.map((block: { type: string; text?: string }) => block.text || '').join('');
+    for (let i = 0; i < keys.length; i++) {
+      const activeKey = keys[i];
+      try {
+        const result = await new Promise<string>((resolve, reject) => {
+          const options: https.RequestOptions = {
+            hostname: 'api.anthropic.com',
+            port: 443,
+            path: '/v1/messages',
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': activeKey,
+              'anthropic-version': '2023-06-01',
+              'Content-Length': Buffer.byteLength(payload)
+            }
+          };
+
+          this.makeRequest(options, payload, (data) => {
+            const parsed = JSON.parse(data);
+            const content = parsed.content;
+            if (Array.isArray(content) && content.length > 0) {
+              return content.map((block: { type: string; text?: string }) => block.text || '').join('');
+            }
+            return 'Maaf, saya tidak dapat merespon saat ini.';
+          }).then(resolve).catch(reject);
+        });
+
+        return result;
+      } catch (err) {
+        lastError = err as Error;
+        const errStr = lastError.message || '';
+        if ((errStr.includes('429') || errStr.includes('BATAS KUOTA')) && i < keys.length - 1) {
+          continue;
         }
-        return 'Maaf, saya tidak dapat merespon saat ini.';
-      }).then(resolve).catch(reject);
-    });
+        throw lastError;
+      }
+    }
+
+    throw lastError || new Error('Gagal mengeksekusi permintaan.');
   }
 
-  // --- Google Gemini API ---
-  private callGeminiApi(systemPrompt: string, messages: AIMessage[]): Promise<string> {
+  // --- Google Gemini API with Multi-Key Rotation ---
+  private async callGeminiApi(systemPrompt: string, messages: AIMessage[]): Promise<string> {
+    const keys = this.getApiKeysList();
+    if (keys.length === 0) {
+      throw new Error('API Key belum diatur.');
+    }
+
     const geminiContents = messages.map(m => ({
       role: m.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: m.content }]
@@ -976,32 +1036,50 @@ Analisis struktur repositori ini dalam bahasa awam (TANPA EMOJI, gunakan penanda
       }
     });
 
-    const path = `/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
+    let lastError: Error | null = null;
 
-    return new Promise((resolve, reject) => {
-      const options: https.RequestOptions = {
-        hostname: 'generativelanguage.googleapis.com',
-        port: 443,
-        path: path,
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(payload)
-        }
-      };
+    for (let i = 0; i < keys.length; i++) {
+      const activeKey = keys[i];
+      const path = `/v1beta/models/${this.model}:generateContent?key=${activeKey}`;
 
-      this.makeRequest(options, payload, (data) => {
-        const parsed = JSON.parse(data);
-        const candidates = parsed.candidates;
-        if (Array.isArray(candidates) && candidates.length > 0) {
-          const parts = candidates[0].content?.parts;
-          if (Array.isArray(parts) && parts.length > 0) {
-            return parts.map((p: { text?: string }) => p.text || '').join('');
-          }
+      try {
+        const result = await new Promise<string>((resolve, reject) => {
+          const options: https.RequestOptions = {
+            hostname: 'generativelanguage.googleapis.com',
+            port: 443,
+            path: path,
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Content-Length': Buffer.byteLength(payload)
+            }
+          };
+
+          this.makeRequest(options, payload, (data) => {
+            const parsed = JSON.parse(data);
+            const candidates = parsed.candidates;
+            if (Array.isArray(candidates) && candidates.length > 0) {
+              const parts = candidates[0].content?.parts;
+              if (Array.isArray(parts) && parts.length > 0) {
+                return parts.map((p: { text?: string }) => p.text || '').join('');
+              }
+            }
+            return 'Maaf, saya tidak dapat merespon saat ini.';
+          }).then(resolve).catch(reject);
+        });
+
+        return result;
+      } catch (err) {
+        lastError = err as Error;
+        const errStr = lastError.message || '';
+        if ((errStr.includes('429') || errStr.includes('BATAS KUOTA')) && i < keys.length - 1) {
+          continue;
         }
-        return 'Maaf, saya tidak dapat merespon saat ini.';
-      }).then(resolve).catch(reject);
-    });
+        throw lastError;
+      }
+    }
+
+    throw lastError || new Error('Gagal mengeksekusi permintaan.');
   }
 
   // --- Shared HTTP Request Helper ---

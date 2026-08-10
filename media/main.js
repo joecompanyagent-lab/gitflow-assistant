@@ -22,7 +22,7 @@
         'custom'
       ],
       defaultModel: 'llama-3.3-70b-versatile',
-      keyPlaceholder: 'gsk_...',
+      keyPlaceholder: 'gsk_key1, gsk_key2 (bisa beberapa API Key dipisahkan koma)',
       consoleUrl: 'console.groq.com'
     },
     openai: {
