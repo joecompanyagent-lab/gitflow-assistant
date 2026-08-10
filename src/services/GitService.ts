@@ -528,6 +528,43 @@ export class GitService {
     }
   }
 
+  public getCodebaseStructure(maxFiles: number = 100): string {
+    const cwd = this.getWorkspaceFolder();
+    if (!cwd) return 'Workspace Git tidak terdeteksi.';
+
+    try {
+      const output = execSync('git ls-files', { cwd, encoding: 'utf8' });
+      if (!output) return 'Belum ada berkas terdaftar di Git.';
+
+      const files = output.trim().split('\n').filter(f => f.trim().length > 0);
+      const totalFiles = files.length;
+      const slicedFiles = files.slice(0, maxFiles);
+
+      const path = require('path');
+      const foldersMap: Record<string, string[]> = {};
+
+      slicedFiles.forEach(file => {
+        const dir = path.dirname(file);
+        const folderName = dir === '.' ? 'root' : dir;
+        if (!foldersMap[folderName]) foldersMap[folderName] = [];
+        foldersMap[folderName].push(path.basename(file));
+      });
+
+      let result = `Total berkas dalam repositori: ${totalFiles} file\n\nPeta Struktur Folder & Berkas:\n`;
+      Object.keys(foldersMap).forEach(folder => {
+        result += `- \`${folder}/\`: ${foldersMap[folder].slice(0, 10).join(', ')}${foldersMap[folder].length > 10 ? ` (+${foldersMap[folder].length - 10} file lagi)` : ''}\n`;
+      });
+
+      if (totalFiles > maxFiles) {
+        result += `\n... [Menampilkan ${maxFiles} dari total ${totalFiles} file]`;
+      }
+
+      return result;
+    } catch (e) {
+      return `Gagal memindai struktur proyek: ${(e as Error).message}`;
+    }
+  }
+
   private getWorkspaceFolder(): string | undefined {
     return vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
       ? vscode.workspace.workspaceFolders[0].uri.fsPath

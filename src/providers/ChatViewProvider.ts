@@ -242,6 +242,11 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       await this.handleWorktreeCommand(q);
       return;
     }
+    if (trimmed.startsWith('/scan') || trimmed.startsWith('/codebase')) {
+      const q = trimmed.replace(/^\/(scan|codebase)/, '').trim();
+      await this.handleScanCodebaseCommand(q);
+      return;
+    }
 
     // Interactive Branch Safety Guard check
     const status = await this.gitService.getBranchStatus();
@@ -719,6 +724,29 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     this.postMessage({ type: 'receiveMessage', message: msg });
   }
 
+  public async handleScanCodebaseCommand(query: string): Promise<void> {
+    this.postMessage({ type: 'loading', isLoading: true });
+
+    try {
+      const codebaseMap = this.gitService.getCodebaseStructure(100);
+      const analysis = await this.groqService.generateCodebaseAnalysis(codebaseMap, query);
+
+      const aiMsg: ChatMessage = {
+        id: generateMessageId(),
+        role: 'assistant',
+        content: analysis,
+        timestamp: Date.now(),
+        tag: 'STRUCTURE'
+      };
+      this.postMessage({ type: 'receiveMessage', message: aiMsg });
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Terjadi kesalahan saat memindai kode proyek.';
+      this.postMessage({ type: 'error', error: errorMsg });
+    } finally {
+      this.postMessage({ type: 'loading', isLoading: false });
+    }
+  }
+
   private async handleBranchChange(status: BranchStatus): Promise<void> {
     this.postMessage({ type: 'branchUpdate', branchStatus: status });
     const config = vscode.workspace.getConfiguration('gitflowAssistant');
@@ -889,6 +917,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       <button class="chip-btn" data-cmd="/commit" title="Buat commit dari git diff">Tulis Commit</button>
       <button class="chip-btn" data-cmd="/cmd" title="Rangkai perintah Git otomatis">Rangkai Cmd</button>
       <button class="chip-btn" data-cmd="/score" title="Nilai kualitas commit">Skor Kualitas</button>
+      <button class="chip-btn" data-cmd="/scan" title="Pindai & pahami struktur seluruh berkas proyek">Pindai Proyek</button>
       <button class="chip-btn" data-cmd="/notebook" title="Bersihkan metadata output Jupyter Notebook (.ipynb)">Bersihkan Notebook</button>
       <button class="chip-btn" data-cmd="/dataset" title="Periksa berkas ukuran besar (>=50MB)">Cek File Besar</button>
       <button class="chip-btn" data-cmd="/mlog" title="Catat eksperimen ML & hyperparameter">Catat Eksperimen</button>

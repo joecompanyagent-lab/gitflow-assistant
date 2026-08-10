@@ -789,6 +789,37 @@ Format TANPA EMOJI, gunakan penanda teks ([WARNING], [SUGGESTION]).`;
     return await this.callProviderApi(SYSTEM_PROMPT, [{ role: 'user', content: prompt }]);
   }
 
+  public async generateCodebaseAnalysis(codebaseMap: string, userQuery?: string): Promise<string> {
+    const isEn = this.language === 'en';
+    const prompt = isEn
+      ? `[CODEBASE DEEP READER & PROJECT CONTEXT SCAN]
+Workspace Codebase Structure Map:
+\`\`\`text
+${codebaseMap}
+\`\`\`
+User Query: "${userQuery || 'Summarize project architecture and module responsibilities'}"
+
+Task:
+Analyze the codebase structure in layman's terms without emojis using text tags:
+1. [STRUCTURE] Executive Project Architecture Overview
+2. Core Modules & Directory Responsibilities
+3. GitFlow Branching Recommendation & Clean Code Tips`
+      : `[PEMBACA KODE PROYEK & PEMINDAI KONTEKS REPO]
+Peta Struktur Berkas Repositori Workspace:
+\`\`\`text
+${codebaseMap}
+\`\`\`
+Pertanyaan/Fokus Pengguna: "${userQuery || 'Ringkas arsitektur proyek dan tanggung jawab setiap folder'}"
+
+Tugas Anda:
+Analisis struktur repositori ini dalam bahasa awam (TANPA EMOJI, gunakan penanda teks):
+1. [STRUCTURE] Ringkasan Eksekutif Arsitektur Proyek
+2. Modul Utama & Tanggung Jawab Folder
+3. Rekomendasi Alur Branch GitFlow & Tips Kebersihan Kode`;
+
+    return await this.callProviderApi(SYSTEM_PROMPT, [{ role: 'user', content: prompt }]);
+  }
+
   private async callProviderApi(systemPrompt: string, messages: AIMessage[]): Promise<string> {
     switch (this.provider) {
       case 'anthropic':

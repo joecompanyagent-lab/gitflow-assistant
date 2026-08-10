@@ -105,6 +105,10 @@ export function activate(context: vscode.ExtensionContext): void {
     chatProvider.handleWorktreeCommand('');
   });
 
+  const scanCodebaseCmd = vscode.commands.registerCommand('gitflowAssistant.scanCodebase', () => {
+    chatProvider.handleScanCodebaseCommand('');
+  });
+
   context.subscriptions.push(
     viewRegistration,
     configListener,
@@ -124,6 +128,7 @@ export function activate(context: vscode.ExtensionContext): void {
     checkLargeFilesCmd,
     mlLogCmd,
     worktreePlaygroundCmd,
+    scanCodebaseCmd,
     { dispose: () => gitService.dispose() }
   );
 }
