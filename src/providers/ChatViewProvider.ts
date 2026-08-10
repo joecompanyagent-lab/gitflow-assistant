@@ -819,7 +819,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
               <path d="M6 21V9a9 9 0 0 0 9 9"/>
             </svg>
           </span>
-          <h1>GitFlow Assistant <span class="version-badge">v8.3.1</span></h1>
+          <h1>GitFlow Assistant <span class="version-badge">v8.3.2</span></h1>
         </div>
         <div class="header-actions">
           <select id="lang-select" class="lang-select" title="Bahasa / Language">

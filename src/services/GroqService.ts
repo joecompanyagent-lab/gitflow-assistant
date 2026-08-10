@@ -1021,7 +1021,12 @@ Analisis struktur repositori ini dalam bahasa awam (TANPA EMOJI, gunakan penanda
               let errorMsg = `API Error (${res.statusCode})`;
               try {
                 const errorBody = JSON.parse(data);
-                errorMsg = `API Error (${res.statusCode}): ${errorBody.error?.message || errorBody.message || data}`;
+                const rawMessage = errorBody.error?.message || errorBody.message || data;
+                if (res.statusCode === 429) {
+                  errorMsg = `[BATAS KUOTA PER MENIT TERCAPAI (429)]\n\n${rawMessage}\n\nSaran Solusi Ramah Awam:\n1. Tunggu ~15-20 detik agar kuota TPM di-reset otomatis.\n2. Ganti model ke 'llama-3.1-8b-instant' di menu atas (kuota 2.5x lebih besar & respon super cepat).\n3. Gunakan provider Google Gemini / Ollama Local AI (tanpa batas TPM).`;
+                } else {
+                  errorMsg = `API Error (${res.statusCode}): ${rawMessage}`;
+                }
               } catch { /* use generic error */ }
               reject(new Error(errorMsg));
               return;
