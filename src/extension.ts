@@ -89,6 +89,14 @@ export function activate(context: vscode.ExtensionContext): void {
     chatProvider.handleScorecardCommand();
   });
 
+  const cleanNotebookCmd = vscode.commands.registerCommand('gitflowAssistant.cleanNotebook', () => {
+    chatProvider.handleCleanNotebookCommand();
+  });
+
+  const checkLargeFilesCmd = vscode.commands.registerCommand('gitflowAssistant.checkLargeFiles', () => {
+    chatProvider.handleCheckLargeFilesCommand();
+  });
+
   context.subscriptions.push(
     viewRegistration,
     configListener,
@@ -104,6 +112,8 @@ export function activate(context: vscode.ExtensionContext): void {
     historyCmd,
     commandBuilderCmd,
     scorecardCmd,
+    cleanNotebookCmd,
+    checkLargeFilesCmd,
     { dispose: () => gitService.dispose() }
   );
 }

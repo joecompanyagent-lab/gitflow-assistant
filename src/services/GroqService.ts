@@ -743,6 +743,35 @@ Format (TANPA EMOJI, gunakan penanda teks):
     return await this.callProviderApi(SYSTEM_PROMPT, [{ role: 'user', content: scorePrompt }]);
   }
 
+  public async generateLargeFileSafetyAdvice(largeFiles: { filePath: string; sizeMB: number }[]): Promise<string> {
+    const isEn = this.language === 'en';
+    const filesText = largeFiles.map(f => `- \`${f.filePath}\` (${f.sizeMB} MB)`).join('\n');
+
+    const prompt = isEn
+      ? `[LARGE FILE & DATASET SAFETY GUARD]
+The following large files (>= 50 MB) were detected in the working tree:
+${filesText}
+
+Task:
+Explain in layman's terms why committing large files directly into Git causes issues (repo bloat, failed push errors).
+Provide clear step-by-step instructions and 1-click action recommendations:
+1. Option A: Add to .gitignore
+2. Option B: Use Git LFS or DVC for Data Science/ML models
+Format without emojis using text tags ([WARNING], [SUGGESTION]).`
+      : `[PELINDUNG BERKAS BESAR & DATASET ML]
+Berkas ukuran besar (>= 50 MB) berikut terdeteksi di meja kerja Git Anda:
+${filesText}
+
+Tugas Anda:
+Jelaskan dalam bahasa awam mengapa meng-commit berkas besar ke Git biasa dapat menyebabkan repositori macet/error saat push.
+Berikan panduan langkah demi langkah dan opsi tindakan ramah awam:
+1. Opsi A: Abaikan berkas dengan memasukkan ke \`.gitignore\`
+2. Opsi B: Gunakan Git LFS atau DVC untuk dataset / model weights Machine Learning
+Format TANPA EMOJI, gunakan penanda teks ([WARNING], [SUGGESTION]).`;
+
+    return await this.callProviderApi(SYSTEM_PROMPT, [{ role: 'user', content: prompt }]);
+  }
+
   private async callProviderApi(systemPrompt: string, messages: AIMessage[]): Promise<string> {
     switch (this.provider) {
       case 'anthropic':

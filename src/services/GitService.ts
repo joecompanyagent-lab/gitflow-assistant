@@ -387,6 +387,76 @@ export class GitService {
     }
   }
 
+  public stripJupyterNotebookMetadata(): { success: boolean; filePath: string; message: string } {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      return { success: false, filePath: '', message: 'Silakan buka file Jupyter Notebook (.ipynb) di editor terlebih dahulu.' };
+    }
+
+    const filePath = editor.document.fileName;
+    if (!filePath.endsWith('.ipynb')) {
+      return { success: false, filePath, message: 'File aktif saat ini bukan berkas Jupyter Notebook (.ipynb).' };
+    }
+
+    try {
+      const content = editor.document.getText();
+      const notebook = JSON.parse(content);
+
+      if (Array.isArray(notebook.cells)) {
+        notebook.cells.forEach((cell: any) => {
+          if (cell.outputs) cell.outputs = [];
+          if (cell.execution_count !== undefined) cell.execution_count = null;
+          if (cell.metadata) cell.metadata = {};
+        });
+      }
+      if (notebook.metadata) {
+        notebook.metadata = {
+          language_info: notebook.metadata.language_info || {}
+        };
+      }
+
+      const strippedContent = JSON.stringify(notebook, null, 2);
+      const fs = require('fs');
+      fs.writeFileSync(filePath, strippedContent, 'utf8');
+
+      return { success: true, filePath, message: 'Metadata output grafik berhasil dibersihkan! Diff Git kini rapi dan ringan.' };
+    } catch (e) {
+      return { success: false, filePath, message: `Gagal membersihkan notebook: ${(e as Error).message}` };
+    }
+  }
+
+  public checkLargeFiles(thresholdMB: number = 50): { filePath: string; sizeMB: number }[] {
+    const cwd = this.getWorkspaceFolder();
+    if (!cwd) return [];
+
+    const largeFiles: { filePath: string; sizeMB: number }[] = [];
+    try {
+      const output = execSync('git status --porcelain', { cwd, encoding: 'utf8' });
+      if (!output) return [];
+
+      const lines = output.trim().split('\n');
+      const fs = require('fs');
+      const path = require('path');
+
+      lines.forEach((line) => {
+        const rawPath = line.substring(3).trim().replace(/^"/, '').replace(/"$/, '');
+        const fullPath = path.join(cwd, rawPath);
+
+        if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+          const stats = fs.statSync(fullPath);
+          const sizeMB = stats.size / (1024 * 1024);
+          if (sizeMB >= thresholdMB) {
+            largeFiles.push({ filePath: rawPath, sizeMB: Math.round(sizeMB * 10) / 10 });
+          }
+        }
+      });
+    } catch {
+      // Ignore
+    }
+
+    return largeFiles;
+  }
+
   private getWorkspaceFolder(): string | undefined {
     return vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
       ? vscode.workspace.workspaceFolders[0].uri.fsPath

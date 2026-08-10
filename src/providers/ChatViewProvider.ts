@@ -221,6 +221,14 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       await this.handleScorecardCommand();
       return;
     }
+    if (trimmed.startsWith('/notebook') || trimmed.startsWith('/clean-notebook')) {
+      await this.handleCleanNotebookCommand();
+      return;
+    }
+    if (trimmed.startsWith('/dataset') || trimmed.startsWith('/large-files')) {
+      await this.handleCheckLargeFilesCommand();
+      return;
+    }
 
     // Interactive Branch Safety Guard check
     const status = await this.gitService.getBranchStatus();
@@ -601,7 +609,56 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       };
       this.postMessage({ type: 'receiveMessage', message: aiMsg });
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Terjadi kesalahan saat mengevaluasi skor kualitas commit.';
+      const errorMsg = error instanceof Error ? error.message : 'Terjadi kesalahan saat mengevaluasi skor kualitas.';
+      this.postMessage({ type: 'error', error: errorMsg });
+    } finally {
+      this.postMessage({ type: 'loading', isLoading: false });
+    }
+  }
+
+  public async handleCleanNotebookCommand(): Promise<void> {
+    const result = this.gitService.stripJupyterNotebookMetadata();
+    const tag = result.success ? 'PROGRESS' : 'WARNING';
+    const msg: ChatMessage = {
+      id: generateMessageId(),
+      role: 'assistant',
+      content: `[${tag}] **Jupytext Clean Notebook Generator**\n\n${result.message}${result.filePath ? `\n\nBerkas: \`${result.filePath}\`` : ''}`,
+      timestamp: Date.now(),
+      tag: result.success ? 'PROGRESS' : 'WARNING'
+    };
+    this.postMessage({ type: 'receiveMessage', message: msg });
+  }
+
+  public async handleCheckLargeFilesCommand(): Promise<void> {
+    this.postMessage({ type: 'loading', isLoading: true });
+
+    try {
+      const largeFiles = this.gitService.checkLargeFiles(50);
+
+      if (largeFiles.length === 0) {
+        const cleanMsg: ChatMessage = {
+          id: generateMessageId(),
+          role: 'assistant',
+          content: `[HEALTH_CHECK] **Pelindung Berkas Besar & Dataset ML**\n\nTidak terdeteksi berkas berukuran besar (>= 50 MB) di meja kerja Git Anda. Repositori Anda aman dan siap di-commit!`,
+          timestamp: Date.now(),
+          tag: 'HEALTH_CHECK'
+        };
+        this.postMessage({ type: 'receiveMessage', message: cleanMsg });
+        return;
+      }
+
+      const advice = await this.groqService.generateLargeFileSafetyAdvice(largeFiles);
+
+      const aiMsg: ChatMessage = {
+        id: generateMessageId(),
+        role: 'assistant',
+        content: advice,
+        timestamp: Date.now(),
+        tag: 'WARNING'
+      };
+      this.postMessage({ type: 'receiveMessage', message: aiMsg });
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Terjadi kesalahan saat memeriksa berkas besar.';
       this.postMessage({ type: 'error', error: errorMsg });
     } finally {
       this.postMessage({ type: 'loading', isLoading: false });
@@ -778,6 +835,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       <button class="chip-btn" data-cmd="/commit" title="Buat commit dari git diff">Tulis Commit</button>
       <button class="chip-btn" data-cmd="/cmd" title="Rangkai perintah Git otomatis">Rangkai Cmd</button>
       <button class="chip-btn" data-cmd="/score" title="Nilai kualitas commit">Skor Kualitas</button>
+      <button class="chip-btn" data-cmd="/notebook" title="Bersihkan metadata output Jupyter Notebook (.ipynb)">Bersihkan Notebook</button>
+      <button class="chip-btn" data-cmd="/dataset" title="Periksa berkas ukuran besar (>=50MB)">Cek File Besar</button>
       <button class="chip-btn" data-cmd="/pr" title="Buat ringkasan PR">Ringkas PR</button>
       <button class="chip-btn" data-cmd="/compare" title="Bandingkan & audit branch">Cek Kesehatan</button>
       <button class="chip-btn" data-cmd="/history" title="Cari riwayat commit">Cari Riwayat</button>
