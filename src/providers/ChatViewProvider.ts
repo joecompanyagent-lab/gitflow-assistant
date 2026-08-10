@@ -842,7 +842,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
               <path d="M6 21V9a9 9 0 0 0 9 9"/>
             </svg>
           </span>
-          <h1>Assistant <span class="version-badge">v8.7.0</span></h1>
+          <h1>Assistant <span class="version-badge">v8.7.1</span></h1>
         </div>
         <div class="header-actions">
           <button id="gear-toggle-btn" class="gear-btn" title="Pengaturan Provider, Model & API Key">
@@ -949,23 +949,23 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         <div class="controls-left">
           <!-- Shortcut Menu Dropdown -->
           <select id="shortcut-select" class="footer-select" title="Perintah Pintas (Shortcut Menu)">
-            <option value="">⚡ Perintah Pintas...</option>
-            <option value="/commit">✍️ Tulis Commit Message</option>
-            <option value="/cmd">🛠️ Rangkai Perintah Git</option>
-            <option value="/score">📊 Skor Kualitas Repositori</option>
-            <option value="/scan">🔍 Pindai Proyek</option>
-            <option value="/notebook">🧹 Bersihkan Notebook</option>
-            <option value="/dataset">📦 Cek File Besar (>=50MB)</option>
-            <option value="/mlog">📈 Catat Eksperimen ML</option>
-            <option value="/worktree">🌱 Meja Uji Coba (Worktree)</option>
-            <option value="/pr">🚀 Ringkas PR (Release Notes)</option>
-            <option value="/compare">🔀 Cek Kesehatan Branch</option>
-            <option value="/history">📜 Cari Riwayat Commit</option>
-            <option value="/info">ℹ️ Info Kode Aktif</option>
-            <option value="/tasks">✅ Daftar Tugas</option>
-            <option value="/report">📄 Laporan Mingguan</option>
-            <option value="/resolve">⚔️ Atasi Konflik Merge</option>
-            <option value="/help">❓ Panduan Pemula</option>
+            <option value="">Perintah Pintas...</option>
+            <option value="/commit">/commit — Tulis Commit Message</option>
+            <option value="/cmd">/cmd — Rangkai Perintah Git</option>
+            <option value="/score">/score — Skor Kualitas Repositori</option>
+            <option value="/scan">/scan — Pindai Proyek</option>
+            <option value="/notebook">/notebook — Bersihkan Notebook</option>
+            <option value="/dataset">/dataset — Cek File Besar (>=50MB)</option>
+            <option value="/mlog">/mlog — Catat Eksperimen ML</option>
+            <option value="/worktree">/worktree — Meja Uji Coba (Worktree)</option>
+            <option value="/pr">/pr — Ringkas PR (Release Notes)</option>
+            <option value="/compare">/compare — Cek Kesehatan Branch</option>
+            <option value="/history">/history — Cari Riwayat Commit</option>
+            <option value="/info">/info — Info Kode Aktif</option>
+            <option value="/tasks">/tasks — Daftar Tugas</option>
+            <option value="/report">/report — Laporan Mingguan</option>
+            <option value="/resolve">/resolve — Atasi Konflik Merge</option>
+            <option value="/help">/help — Panduan Pemula</option>
           </select>
 
           <!-- Model Selector Dropdown -->
