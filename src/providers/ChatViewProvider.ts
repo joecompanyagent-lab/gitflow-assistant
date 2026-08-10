@@ -85,9 +85,12 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
               groq: 'groqApiKey',
               openai: 'openaiApiKey',
               anthropic: 'anthropicApiKey',
-              gemini: 'geminiApiKey'
+              gemini: 'geminiApiKey',
+              ollama: 'ollamaApiKey'
             };
-            await config.update(keyMap[provider], message.apiKey, vscode.ConfigurationTarget.Global);
+            if (keyMap[provider]) {
+              await config.update(keyMap[provider], message.apiKey, vscode.ConfigurationTarget.Global);
+            }
             await config.update('provider', provider, vscode.ConfigurationTarget.Global);
             if (model) {
               await config.update('model', model, vscode.ConfigurationTarget.Global);

@@ -2,7 +2,7 @@
   "name": "gitflow-assistant",
   "displayName": "GitFlow Assistant",
   "description": "AI-powered GitFlow chatbot yang membimbing alur kerja 5 branch utama (feat, dev, staging, main, hotfix) dengan bahasa awam. Mendukung Groq, OpenAI, Anthropic, dan Google Gemini.",
-  "version": "8.1.0",
+  "version": "8.2.1",
   "publisher": "gitflow-team",
   "engines": {
     "vscode": "^1.85.0"
@@ -129,12 +129,13 @@
         "gitflowAssistant.provider": {
           "type": "string",
           "default": "groq",
-          "enum": ["groq", "openai", "anthropic", "gemini"],
+          "enum": ["groq", "openai", "anthropic", "gemini", "ollama"],
           "enumDescriptions": [
             "Groq (Llama, Mixtral)",
             "OpenAI (GPT-4o, GPT-4 Turbo)",
             "Anthropic (Claude Sonnet, Haiku)",
-            "Google Gemini (Gemini 2.5 Flash, Pro)"
+            "Google Gemini (Gemini 2.5 Flash, Pro)",
+            "Ollama (Local AI / Offline)"
           ],
           "description": "AI Provider yang digunakan"
         },

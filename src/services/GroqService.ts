@@ -74,6 +74,23 @@ export const PROVIDERS: Record<AIProvider, ProviderInfo> = {
     defaultModel: 'gemini-2.5-flash',
     keyPlaceholder: 'AIza...',
     consoleUrl: 'aistudio.google.com'
+  },
+  ollama: {
+    id: 'ollama',
+    name: 'Ollama (Local AI / Offline)',
+    hostname: 'localhost',
+    path: '/api/chat',
+    models: [
+      'llama3',
+      'mistral',
+      'deepseek-r1',
+      'qwen2.5',
+      'gemma2',
+      'custom'
+    ],
+    defaultModel: 'llama3',
+    keyPlaceholder: 'Tidak memerlukan API Key (Offline)',
+    consoleUrl: 'ollama.com'
   }
 };
 
@@ -778,10 +795,66 @@ Format TANPA EMOJI, gunakan penanda teks ([WARNING], [SUGGESTION]).`;
         return this.callAnthropicApi(systemPrompt, messages);
       case 'gemini':
         return this.callGeminiApi(systemPrompt, messages);
+      case 'ollama':
+        return this.callOllamaApi(systemPrompt, messages);
       default:
         // OpenAI-compatible: groq, openai
         return this.callOpenAICompatibleApi(systemPrompt, messages);
     }
+  }
+
+  // --- Ollama Local AI API (Offline) ---
+  private callOllamaApi(systemPrompt: string, messages: AIMessage[]): Promise<string> {
+    const http = require('http');
+    const allMessages = [{ role: 'system', content: systemPrompt }, ...messages];
+
+    const payload = JSON.stringify({
+      model: this.model === 'custom' ? 'llama3' : this.model,
+      messages: allMessages,
+      stream: false
+    });
+
+    return new Promise((resolve, reject) => {
+      const options = {
+        hostname: 'localhost',
+        port: 11434,
+        path: '/api/chat',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(payload)
+        }
+      };
+
+      const req = http.request(options, (res: any) => {
+        let data = '';
+        res.on('data', (chunk: Buffer) => { data += chunk.toString(); });
+        res.on('end', () => {
+          try {
+            if (res.statusCode && res.statusCode >= 400) {
+              reject(new Error(`Ollama Error (${res.statusCode}): Pastikan server Ollama berjalan di localhost:11434.`));
+              return;
+            }
+            const parsed = JSON.parse(data);
+            resolve(parsed.message?.content || 'Ollama tidak merespon.');
+          } catch (e) {
+            reject(new Error(`Gagal parsing respon Ollama: ${(e as Error).message}`));
+          }
+        });
+      });
+
+      req.on('error', (e: Error) => {
+        reject(new Error(`Tidak dapat terhubung ke Ollama (localhost:11434). Pastikan aplikasi Ollama sudah berjalan.`));
+      });
+
+      req.setTimeout(45000, () => {
+        req.destroy();
+        reject(new Error('Ollama API timeout (45 detik).'));
+      });
+
+      req.write(payload);
+      req.end();
+    });
   }
 
   // --- OpenAI-Compatible API (Groq, OpenAI) ---

@@ -42,6 +42,12 @@
       defaultModel: 'gemini-2.5-flash',
       keyPlaceholder: 'AIza...',
       consoleUrl: 'aistudio.google.com'
+    },
+    ollama: {
+      models: ['llama3', 'mistral', 'deepseek-r1', 'qwen2.5', 'gemma2', 'custom'],
+      defaultModel: 'llama3',
+      keyPlaceholder: 'Tidak memerlukan API Key (Offline)',
+      consoleUrl: 'ollama.com'
     }
   };
 
@@ -225,10 +231,13 @@
     if (model === 'custom' && customModelInput) {
       model = customModelInput.value.trim() || (PROVIDER_DATA[provider] ? PROVIDER_DATA[provider].defaultModel : 'llama-3.3-70b-versatile');
     }
-    if (!key) {
+    if (!key && provider !== 'ollama') {
       showError('Silakan ketik atau tempel API Key Anda terlebih dahulu pada kolom API KEY.');
       apiKeyInput.focus();
       return;
+    }
+    if (provider === 'ollama' && !key) {
+      key = 'ollama_local';
     }
     configSubmit.textContent = 'Menyimpan...';
     vscode.postMessage({

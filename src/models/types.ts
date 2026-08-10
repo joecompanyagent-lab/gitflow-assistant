@@ -29,7 +29,7 @@ export interface BranchStatus {
   branches: BranchInfo[];
 }
 
-export type AIProvider = 'groq' | 'openai' | 'anthropic' | 'gemini';
+export type AIProvider = 'groq' | 'openai' | 'anthropic' | 'gemini' | 'ollama';
 
 export interface ProviderInfo {
   id: AIProvider;

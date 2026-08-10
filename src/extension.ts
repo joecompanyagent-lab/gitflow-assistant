@@ -134,8 +134,12 @@ function getApiKeyForProvider(config: vscode.WorkspaceConfiguration, provider: A
     groq: 'groqApiKey',
     openai: 'openaiApiKey',
     anthropic: 'anthropicApiKey',
-    gemini: 'geminiApiKey'
+    gemini: 'geminiApiKey',
+    ollama: 'ollamaApiKey'
   };
+  if (provider === 'ollama') {
+    return config.get<string>('ollamaApiKey', 'ollama_local');
+  }
   return config.get<string>(keyMap[provider], '');
 }
 
